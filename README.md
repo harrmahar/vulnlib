@@ -9,7 +9,7 @@ The system mimics the features of a typical library application while intentiona
 
 ---
 
-## 🔹 Features Overview
+## 🔹 Features by Role Overview
 
 ### Public (No Authentication)
 - **Home & Book Search**: Search books by title, category, author, or year.  
@@ -46,17 +46,16 @@ Vulnlib intentionally includes multiple categories of vulnerabilities for pentes
 
 - **SQL Injection (SQLi)**  
 - **Cross-Site Scripting (XSS)** – reflected and stored  
-- **Local File Inclusion (LFI)**  
-- **Remote Code Execution (RCE)**  
 - **Insecure File Upload**  
 - **Server-Side Request Forgery (SSRF)**  
-- **Broken Access Control / IDOR**  
-- **Weak Authentication & Session Issues**  
+- **Broken Access Control**
+- **Insecure Direct Object Reference (IDOR)**    
 - **Business Logic Flaws**  
 - **Mass Assignment**  
 - **Open Redirect**  
 - **Sensitive Data Exposure**  
-- **CSV Injection**  
+- **Grep Endpoint from app.js**
+- etc.
 
 ---
 
