@@ -1,0 +1,846 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Loans - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="bi bi-journal-check"></i> Manage Loans
+        </h2>
+        <p class="text-muted">Review loan requests and manage active loans</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-primary" onclick="loadLoans()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Pending Requests</h6>
+                        <h3 id="pendingCount">-</h3>
+                    </div>
+                    <i class="bi bi-hourglass-split display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Active Loans</h6>
+                        <h3 id="activeCount">-</h3>
+                    </div>
+                    <i class="bi bi-journal-check display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Overdue</h6>
+                        <h3 id="overdueCount">-</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Returned Today</h6>
+                        <h3 id="returnedTodayCount">-</h3>
+                    </div>
+                    <i class="bi bi-check-circle display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs" id="loanTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" 
+                type="button" role="tab" aria-controls="pending" aria-selected="true">
+            <i class="bi bi-hourglass-split"></i> Pending Requests
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" 
+                type="button" role="tab" aria-controls="active" aria-selected="false">
+            <i class="bi bi-journal-check"></i> Active Loans
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="overdue-tab" data-bs-toggle="tab" data-bs-target="#overdue" 
+                type="button" role="tab" aria-controls="overdue" aria-selected="false">
+            <i class="bi bi-exclamation-triangle"></i> Overdue
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" 
+                type="button" role="tab" aria-controls="history" aria-selected="false">
+            <i class="bi bi-clock-history"></i> History
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="extensions-tab" data-bs-toggle="tab" data-bs-target="#extensions" 
+                type="button" role="tab" aria-controls="extensions" aria-selected="false">
+            <i class="bi bi-arrow-right-circle"></i> Extensions
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="loanTabContent">
+    <!-- Pending Requests -->
+    <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Pending Loan Requests</h5>
+            </div>
+            <div class="card-body">
+                <div id="pendingLoans">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Loans -->
+    <div class="tab-pane fade" id="active" role="tabpanel" aria-labelledby="active-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Active Loans</h5>
+            </div>
+            <div class="card-body">
+                <div id="activeLoans">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overdue -->
+    <div class="tab-pane fade" id="overdue" role="tabpanel" aria-labelledby="overdue-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Overdue Items</h5>
+            </div>
+            <div class="card-body">
+                <div id="overdueLoans">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- History -->
+    <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Loan History</h5>
+                    <div>
+                        <select class="form-select form-select-sm" id="monthFilter" onchange="filterHistory()">
+                            <option value="">All Months</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="historyLoans">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Extensions -->
+    <div class="tab-pane fade" id="extensions" role="tabpanel" aria-labelledby="extensions-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Loan Extensions</h5>
+            </div>
+            <div class="card-body">
+                <div id="extensionsList">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Return Book Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="returnModalLabel">Return Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="returnForm">
+                <div class="modal-body">
+                    <input type="hidden" id="returnLoanId" name="loanId">
+                    <div class="mb-3">
+                        <label for="returnDate" class="form-label">Return Date</label>
+                        <input type="date" class="form-control" id="returnDate" name="return_date" required>
+                        <div class="form-text text-warning">
+                            ⚠️ This field allows manipulation of return date for fine calculation
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="returnNotes" class="form-label">Return Notes</label>
+                        <textarea class="form-control" id="returnNotes" name="notes" rows="3" 
+                                placeholder="Any notes about the return..."></textarea>
+                    </div>
+                    <div id="fineCalculation" class="alert alert-info d-none">
+                        <strong>Fine Calculation:</strong>
+                        <div id="fineDetails"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Process Return</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadLoans();
+    
+    // Event listeners for tabs
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (event) {
+            if (event.target.id === 'active-tab') {
+                loadActiveLoans();
+            } else if (event.target.id === 'overdue-tab') {
+                loadOverdueLoans();
+            } else if (event.target.id === 'history-tab') {
+                loadHistoryLoans();
+            } else if (event.target.id === 'extensions-tab') {
+                loadExtensions();
+            }
+        });
+    });
+    
+    // Return form handler
+    document.getElementById('returnForm').addEventListener('submit', handleReturn);
+    
+    // Set default return date to today
+    document.getElementById('returnDate').value = new Date().toISOString().split('T')[0];
+});
+
+function loadLoans() {
+    loadPendingLoans();
+    loadStats();
+}
+
+function loadStats() {
+    fetch('/api/loans/all')
+        .then(response => response.json())
+        .then(data => {
+            const loans = data.loans || [];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Calculate statistics
+            const pendingCount = loans.filter(loan => loan.status === 'pending').length;
+            const activeCount = loans.filter(loan => 
+                loan.status === 'approved' && !loan.returned_at
+            ).length;
+            
+            const overdueCount = loans.filter(loan => {
+                if (loan.status !== 'approved' || loan.returned_at) return false;
+                const dueDate = new Date(loan.due_date);
+                dueDate.setHours(0, 0, 0, 0);
+                return dueDate < today;
+            }).length;
+            
+            const returnedTodayCount = loans.filter(loan => {
+                if (!loan.returned_at) return false;
+                const returnDate = new Date(loan.returned_at);
+                returnDate.setHours(0, 0, 0, 0);
+                return returnDate.getTime() === today.getTime();
+            }).length;
+            
+            // Update UI
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('activeCount').textContent = activeCount;
+            document.getElementById('overdueCount').textContent = overdueCount;
+            document.getElementById('returnedTodayCount').textContent = returnedTodayCount;
+        })
+        .catch(error => {
+            console.error('Error loading stats:', error);
+        });
+}
+
+function loadPendingLoans() {
+    fetch('/api/loans/pending')
+        .then(response => response.json())
+        .then(data => {
+            displayPendingLoans(data.loans || []);
+            document.getElementById('pendingCount').textContent = (data.loans || []).length;
+        })
+        .catch(error => {
+            console.error('Error loading pending loans:', error);
+            document.getElementById('pendingLoans').innerHTML = 
+                '<p class="text-danger">Error loading pending loans</p>';
+        });
+}
+
+function displayPendingLoans(loans) {
+    const container = document.getElementById('pendingLoans');
+    
+    if (loans.length === 0) {
+        container.innerHTML = '<p class="text-muted">No pending loan requests</p>';
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Book</th>
+                <th>Requested</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${loans.map(loan => `
+                <tr>
+                    <td>
+                        <strong>${loan.username}</strong><br>
+                        <small class="text-muted">${loan.user_id}</small>
+                    </td>
+                    <td>
+                        <strong>${loan.book_title}</strong><br>
+                        <small class="text-muted">ID: ${loan.book_id}</small>
+                    </td>
+                    <td>${new Date(loan.requested_at).toLocaleDateString()}</td>
+                    <td>${loan.due_date ? new Date(loan.due_date).toLocaleDateString() : '-'}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-success" onclick="approveLoan('${loan.id}')" title="Approve">
+                                <i class="bi bi-check-lg"></i> Approve
+                            </button>
+                            <button class="btn btn-danger" onclick="rejectLoan('${loan.id}')" title="Reject">
+                                <i class="bi bi-x-lg"></i> Reject
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function loadActiveLoans() {
+    fetch('/api/loans/all')
+        .then(response => response.json())
+        .then(data => {
+            // Filter for approved loans that haven't been returned
+            const activeLoans = (data.loans || []).filter(loan => 
+                loan.status === 'approved' && !loan.returned_at
+            );
+            displayActiveLoans(activeLoans);
+            document.getElementById('activeCount').textContent = activeLoans.length;
+        })
+        .catch(error => {
+            console.error('Error loading active loans:', error);
+            document.getElementById('activeLoans').innerHTML = 
+                '<p class="text-danger">Error loading active loans</p>';
+        });
+}
+
+function displayActiveLoans(loans) {
+    const container = document.getElementById('activeLoans');
+    
+    if (loans.length === 0) {
+        container.innerHTML = '<p class="text-muted">No active loans</p>';
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Book</th>
+                <th>Borrowed</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${loans.map(loan => {
+                const dueDate = new Date(loan.due_date);
+                const today = new Date();
+                const isOverdue = dueDate < today;
+                const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                
+                return `
+                    <tr class="${isOverdue ? 'table-danger' : (daysUntilDue <= 3 ? 'table-warning' : '')}">
+                        <td>
+                            <strong>${loan.username}</strong><br>
+                            <small class="text-muted">${loan.user_id}</small>
+                        </td>
+                        <td>
+                            <strong>${loan.book_title}</strong><br>
+                            <small class="text-muted">ID: ${loan.book_id}</small>
+                        </td>
+                        <td>${loan.approved_at ? new Date(loan.approved_at).toLocaleDateString() : '-'}</td>
+                        <td>
+                            ${dueDate.toLocaleDateString()}
+                            ${isOverdue ? `<br><small class="text-danger">Overdue by ${Math.abs(daysUntilDue)} days</small>` : 
+                              (daysUntilDue <= 3 ? `<br><small class="text-warning">Due in ${daysUntilDue} days</small>` : '')}
+                        </td>
+                        <td>
+                            <span class="badge ${isOverdue ? 'bg-danger' : 'bg-success'}">
+                                ${isOverdue ? 'Overdue' : 'Active'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-primary" onclick="returnBook('${loan.id}', '${loan.book_title}', '${loan.due_date}')" title="Return">
+                                    <i class="bi bi-arrow-return-left"></i> Return
+                                </button>
+                                <a href="/api/loans/${loan.id}/slip" class="btn btn-outline-info" title="Print Slip">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function displayOverdueLoans(loans) {
+    const container = document.getElementById('overdueLoans');
+    
+    if (loans.length === 0) {
+        container.innerHTML = '<p class="text-muted">No overdue loans</p>';
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover table-danger';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Book</th>
+                <th>Due Date</th>
+                <th>Days Overdue</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${loans.map(loan => {
+                const dueDate = new Date(loan.due_date);
+                const today = new Date();
+                const daysOverdue = Math.ceil((today - dueDate) / (1000 * 60 * 60 * 24));
+                
+                return `
+                    <tr>
+                        <td>
+                            <strong>${loan.username}</strong><br>
+                            <small class="text-muted">${loan.user_id}</small>
+                        </td>
+                        <td>
+                            <strong>${loan.book_title}</strong><br>
+                            <small class="text-muted">ID: ${loan.book_id}</small>
+                        </td>
+                        <td>
+                            <span class="text-danger">${dueDate.toLocaleDateString()}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-danger">${daysOverdue} days</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-warning" onclick="contactUser('${loan.user_id}')" title="Contact User">
+                                    <i class="bi bi-envelope"></i>
+                                </button>
+                                <button class="btn btn-success" onclick="markReturned('${loan.id}')" title="Mark Returned">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function loadOverdueLoans() {
+    fetch('/api/loans/all')
+        .then(response => response.json())
+        .then(data => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Filter for approved loans that are overdue and not returned
+            const overdueLoans = (data.loans || []).filter(loan => {
+                if (loan.status !== 'approved' || loan.returned_at) return false;
+                const dueDate = new Date(loan.due_date);
+                dueDate.setHours(0, 0, 0, 0);
+                return dueDate < today;
+            });
+            
+            displayOverdueLoans(overdueLoans);
+            document.getElementById('overdueCount').textContent = overdueLoans.length;
+        })
+        .catch(error => {
+            console.error('Error loading overdue loans:', error);
+            document.getElementById('overdueLoans').innerHTML = 
+                '<p class="text-danger">Error loading overdue loans</p>';
+        });
+}
+
+function loadHistoryLoans() {
+    fetch('/api/loans/all')
+        .then(response => response.json())
+        .then(data => {
+            // Filter for returned loans
+            const historyLoans = (data.loans || []).filter(loan => 
+                loan.status === 'returned' || loan.returned_at
+            );
+            
+            // Also update returned today count
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const returnedToday = historyLoans.filter(loan => {
+                if (!loan.returned_at) return false;
+                const returnDate = new Date(loan.returned_at);
+                returnDate.setHours(0, 0, 0, 0);
+                return returnDate.getTime() === today.getTime();
+            });
+            
+            displayHistoryLoans(historyLoans);
+            document.getElementById('returnedTodayCount').textContent = returnedToday.length;
+        })
+        .catch(error => {
+            console.error('Error loading history loans:', error);
+            document.getElementById('historyLoans').innerHTML = 
+                '<p class="text-danger">Error loading loan history</p>';
+        });
+}
+
+function filterHistory() {
+    const month = document.getElementById('monthFilter').value;
+    
+    if (!month) {
+        loadHistoryLoans();
+        return;
+    }
+    
+    // This generates the report
+    fetch(`/api/reports/loans?year=2024&month=${month}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.loans) {
+                displayHistoryLoans(data.loans);
+            } else {
+                VulnLib.notifications.error(data.message || 'Error loading history');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading history:', error);
+            VulnLib.notifications.error('Error loading loan history');
+        });
+}
+
+function displayHistoryLoans(loans) {
+    const container = document.getElementById('historyLoans');
+    
+    if (loans.length === 0) {
+        container.innerHTML = '<p class="text-muted">No loans found for selected period</p>';
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover table-sm';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Book</th>
+                <th>Requested</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${loans.map(loan => `
+                <tr>
+                    <td>${loan.username}</td>
+                    <td>${loan.book_title}</td>
+                    <td>${new Date(loan.requested_at).toLocaleDateString()}</td>
+                    <td>
+                        <span class="badge bg-secondary">${loan.status}</span>
+                    </td>
+                </tr>
+            `).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function approveLoan(loanId) {
+    fetch(`/api/loans/${loanId}/approve`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success('Loan approved successfully!');
+            // Refresh all relevant sections
+            loadPendingLoans();
+            loadActiveLoans(); 
+            loadStats();
+        } else {
+            VulnLib.notifications.error(data.message || 'Error approving loan');
+        }
+    })
+    .catch(error => {
+        console.error('Error approving loan:', error);
+        VulnLib.notifications.error('Error approving loan');
+    });
+}
+
+function rejectLoan(loanId) {
+    if (confirm('Are you sure you want to reject this loan request?')) {
+        VulnLib.notifications.info('Reject functionality not implemented in this demo');
+    }
+}
+
+function returnBook(loanId, bookTitle, dueDate) {
+    document.getElementById('returnLoanId').value = loanId;
+    document.getElementById('returnModalLabel').textContent = `Return: ${bookTitle}`;
+    
+    // Calculate potential fine
+    const due = new Date(dueDate);
+    const today = new Date();
+    
+    if (due < today) {
+        const daysOverdue = Math.ceil((today - due) / (1000 * 60 * 60 * 24));
+        const fineAmount = daysOverdue * 1.0;
+        
+        document.getElementById('fineCalculation').classList.remove('d-none');
+        document.getElementById('fineDetails').innerHTML = `
+            Days overdue: ${daysOverdue}<br>
+            Fine amount: $${fineAmount.toFixed(2)} (at $1.00 per day)
+        `;
+    } else {
+        document.getElementById('fineCalculation').classList.add('d-none');
+    }
+    
+    new bootstrap.Modal(document.getElementById('returnModal')).show();
+}
+
+function handleReturn(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const loanId = formData.get('loanId');
+    const returnDate = formData.get('return_date');
+    
+    fetch(`/api/loans/${loanId}/return`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ return_date: returnDate })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success('Book returned successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('returnModal')).hide();
+            // Refresh all relevant sections
+            loadActiveLoans();
+            loadOverdueLoans();
+            loadHistoryLoans();
+            loadStats();
+        } else {
+            VulnLib.notifications.error(data.message || 'Error processing return');
+        }
+    })
+    .catch(error => {
+        console.error('Error processing return:', error);
+        VulnLib.notifications.error('Error processing return');
+    });
+}
+
+function markReturned(loanId) {
+    if (confirm('Mark this loan as returned? This will process the return immediately.')) {
+        fetch(`/api/loans/${loanId}/return`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ return_date: new Date().toISOString() })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                VulnLib.notifications.success('Loan marked as returned!');
+                // Refresh all relevant sections
+                loadActiveLoans();
+                loadOverdueLoans();
+                loadHistoryLoans();
+                loadStats();
+            } else {
+                VulnLib.notifications.error(data.message || 'Error marking loan as returned');
+            }
+        })
+        .catch(error => {
+            console.error('Error marking loan as returned:', error);
+            VulnLib.notifications.error('Error marking loan as returned');
+        });
+    }
+}
+
+function contactUser(userId) {
+    VulnLib.notifications.info('Contact user functionality not implemented in this demo');
+}
+
+function loadExtensions() {
+    // Load extension requests from new librarian endpoint
+    fetch('/api/loans/extensions')
+        .then(response => response.json())
+        .then(data => {
+            if (data.extensions) {
+                displayExtensions(data.extensions);
+            } else {
+                document.getElementById('extensionsList').innerHTML = 
+                    '<p class="text-danger">Error loading extensions</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading extensions:', error);
+            document.getElementById('extensionsList').innerHTML = 
+                '<p class="text-danger">Error loading extensions</p>';
+        });
+}
+
+function displayExtensions(extensions) {
+    const container = document.getElementById('extensionsList');
+    
+    if (extensions.length === 0) {
+        container.innerHTML = '<p class="text-muted">No extension requests found</p>';
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Loan ID</th>
+                <th>Extension Details</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${extensions.map(ext => `
+                <tr>
+                    <td>${new Date(ext.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <strong>${ext.username || 'Unknown User'}</strong><br>
+                        <small class="text-muted">ID: ${ext.user_id || 'N/A'}</small>
+                    </td>
+                    <td>
+                        <code>${ext.loan_id}</code>
+                    </td>
+                    <td>
+                        <span class="text-info">${ext.details}</span>
+                    </td>
+                    <td>
+                        <div class="extension-comments border rounded p-2 bg-light" data-loan-id="${ext.loan_id}">
+                            <small class="text-muted">Extension Reason:</small><br>
+                            ${ext.details.includes('Reason:') ? ext.details.split('Reason: ')[1] : 'No reason provided'}
+                        </div>
+                    </td>
+                </tr>
+            `).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+</script>
+{% endblock %}

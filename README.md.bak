@@ -1,0 +1,263 @@
+# VulnLib - Vulnerable Library Management System
+# By Harrmahar - 2025 
+
+⚠️ **EDUCATIONAL USE ONLY** ⚠️
+
+VulnLib is an intentionally vulnerable web application built for penetration testing education and training. It simulates a realistic library management system with various web application security vulnerabilities.
+
+## 🎯 Purpose
+
+This application is designed for:
+- Web application penetration testing training
+- Security awareness education
+- Demonstrating common web vulnerabilities
+- Practicing ethical hacking techniques
+
+## 🚫 Important Security Warning
+
+**THIS APPLICATION CONTAINS INTENTIONAL SECURITY VULNERABILITIES**
+
+- **NEVER** deploy this in a production environment
+- **NEVER** use real personal data
+- **ONLY** use in controlled, isolated environments
+- **ALWAYS** use for educational purposes only
+
+## 🏗️ Architecture
+
+- **Backend**: Flask (Python)
+- **Frontend**: Bootstrap 5 + Vanilla JavaScript
+- **Database**: SQLite
+- **Authentication**: Flask-Login (Session-based)
+- **Templates**: Jinja2
+
+## 🔧 Installation
+
+1. **Clone or extract the application**
+   ```bash
+   cd vulnlib
+   ```
+
+2. **Install Python dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Initialize the database with demo data**
+   ```bash
+   python seeder.py
+   ```
+
+4. **Run the application**
+   ```bash
+   python app.py
+   ```
+
+5. **Access the application**
+   - Open http://localhost:5000 in your browser
+
+## 👥 Demo Accounts
+
+| Role | Username | Password | Description |
+|------|----------|----------|-------------|
+| Admin | `admin` | `password123` | Full system access |
+| Librarian | `librarian` | `password123` | Book and loan management |
+| Librarian | `sarah_lib` | `library2024` | Additional librarian account |
+| Member | `member` | `password123` | Basic user access |
+| Member | `john_doe` | `student123` | Student member |
+| Member | `alice_smith` | `alice2024` | Student member |
+| Member | `bob_wilson` | `faculty456` | Faculty member |
+| Member | `eva_brown` | `research789` | Research member |
+
+## 🎯 Vulnerabilities by Category
+
+### Cross-Site Scripting (XSS)
+- **Reflected XSS**: Search functionality (`/search?q=<script>alert('XSS')</script>`)
+- **Stored XSS**: Loan Extensions (blind xss) , import notes
+- **DOM XSS**: Various client-side functions
+
+### Injection Flaws
+- **SQL Injection**: Report filters (`/api/reports/loans?month=1' OR 1=1--`)
+- **Command Injection**: File processing functions
+- **LDAP Injection**: User search functionality
+
+### Broken Authentication & Session Management
+- **Username Enumeration**: Different response times/messages during login
+- **Weak Password Policy**: No complexity requirements
+- **Session Fixation**: Predictable session handling
+
+### Broken Access Control
+- **IDOR**: User data endpoints (`/api/users/{user_id}/loans`)
+- **Missing Authorization**: Admin endpoints accessible to regular users
+- **Privilege Escalation**: Mass assignment in user update
+
+### Security Misconfiguration
+- **Debug Mode**: Flask debug enabled
+- **Verbose Errors**: Detailed error messages exposed
+- **Weak Encryption**: Predictable secret keys
+
+### Insecure Direct Object References (IDOR)
+- **User Loans**: `/api/users/{other_user_id}/loans`
+- **Wishlist**: `/api/users/{other_user_id}/wishlist`
+- **Fines**: `/api/users/{other_user_id}/fines`
+
+### Business Logic Flaws
+- **Loan Approval**: Users can approve their own loans
+- **Fine Payment**: Client-controlled payment amounts
+- **Unlimited Extensions**: No limit on loan extensions
+
+### Server-Side Request Forgery (SSRF)
+- **Metadata URLs**: Book creation with external URL fetching
+- **Cover Images**: Unvalidated URL fetching
+
+### File Upload Vulnerabilities
+- **Unrestricted Upload**: No file type validation
+- **Path Traversal**: Directory traversal in file uploads
+- **Malicious Files**: No content scanning
+
+### Open Redirect
+- **Next Parameter**: Unvalidated redirect URLs
+- **Book Details**: External link redirects
+
+## 🧪 Testing Scenarios
+
+### 1. Cross-Site Scripting (XSS)
+```javascript
+// Reflected XSS in search
+http://localhost:5000/search?q=<script>alert('Reflected XSS')</script>
+
+// Stored XSS in book review
+POST /api/books/{book_id}/reviews
+{
+  "rating": 5,
+  "comment": "<script>alert('Stored XSS')</script>",
+  "user_id": "user-uuid"
+}
+```
+
+### 2. IDOR (Insecure Direct Object Reference)
+```bash
+# Access other user's loans
+GET /api/users/{other_user_id}/loans
+
+# Access other user's fines
+GET /api/users/{other_user_id}/fines
+```
+
+### 3. SQL Injection
+```bash
+# SQL injection in reports
+GET /api/reports/loans?year=2024&month=1' UNION SELECT 1,2,3,4,5,6,7,8--
+```
+
+### 4. Mass Assignment
+```bash
+# Privilege escalation via mass assignment
+PUT /api/users/{user_id}
+{
+  "role": "admin",
+  "username": "hacked_user"
+}
+```
+
+### 5. Business Logic Bypass
+```bash
+# Approve own loan
+PUT /api/loans/{own_loan_id}/approve
+{}
+
+# Pay fine with minimal amount
+POST /api/users/{user_id}/fines/pay
+{
+  "fine_id": "fine-uuid",
+  "amount": 0.01
+}
+```
+
+### 6. SSRF (Server-Side Request Forgery)
+```bash
+# SSRF via metadata URL
+POST /api/books
+{
+  "title": "Test Book",
+  "metadata_url": "http://127.0.0.1:5000/admin/users"
+}
+```
+
+### 7. File Upload
+```bash
+# Upload malicious file
+POST /api/books/{book_id}/upload
+Content-Type: multipart/form-data
+
+file: malicious_script.php
+```
+
+## 📁 Project Structure
+
+```
+vulnlib/
+├── app.py                 # Main Flask application
+├── models.py              # Database models
+├── seeder.py              # Database seeder script
+├── requirements.txt       # Python dependencies
+├── README.md              # This file
+├── templates/             # HTML templates
+│   ├── base.html
+│   ├── home.html
+│   ├── search.html
+│   ├── book_detail.html
+│   ├── login.html
+│   └── register.html
+├── static/
+│   ├── css/
+│   │   └── style.css      # Custom CSS
+│   └── js/
+│       └── app.js         # JavaScript utilities
+└── uploads/               # File upload directory
+```
+
+## 🔒 Security Features (Intentionally Weak)
+
+- **Weak Authentication**: Simple password hashing
+- **No CSRF Protection**: Vulnerable to CSRF attacks
+- **No Input Validation**: Minimal server-side validation
+- **Weak Authorization**: Inconsistent access controls
+- **Debug Mode**: Flask debug mode enabled
+- **Verbose Logging**: Detailed error information
+
+## 📚 Learning Objectives
+
+After using VulnLib, users should understand:
+
+1. **Common Web Vulnerabilities**: OWASP Top 10 vulnerabilities
+2. **Attack Vectors**: How vulnerabilities are exploited
+3. **Impact Assessment**: Business impact of security flaws
+4. **Remediation**: How to fix security issues
+5. **Secure Development**: Writing secure code practices
+
+## 🛡️ Remediation Guide
+
+For each vulnerability found, consider these fixes:
+
+- **XSS**: Input sanitization, output encoding, CSP headers
+- **SQL Injection**: Parameterized queries, input validation
+- **IDOR**: Access control checks, user context validation
+- **SSRF**: URL validation, allowlist, internal network restrictions
+- **File Upload**: File type validation, content scanning, safe storage
+
+## 📖 References
+
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [OWASP WebGoat](https://owasp.org/www-project-webgoat/)
+- [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
+- [PortSwigger Web Security Academy](https://portswigger.net/web-security)
+
+## ⚖️ Legal Disclaimer
+
+This software is provided for educational purposes only. Users are responsible for complying with all applicable laws and regulations. The authors are not responsible for any misuse of this software.
+
+**Use responsibly and ethically!**
+
+---
+
+🎓 **Happy Learning and Stay Secure!** 🎓

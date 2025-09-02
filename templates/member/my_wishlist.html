@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}My Wishlist - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="bi bi-heart"></i> My Wishlist
+        </h2>
+        <p class="text-muted">Books you want to read later</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="/search" class="btn btn-primary">
+            <i class="bi bi-search"></i> Find Books to Add
+        </a>
+    </div>
+</div>
+
+<!-- Wishlist Items -->
+<div class="row" id="wishlistContainer">
+    <!-- Loaded via JavaScript -->
+    <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading wishlist...</span>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const userId = '{{ user.id }}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadMyWishlist();
+});
+
+function loadMyWishlist() {
+    fetch(`/api/users/${userId}/wishlist`)
+        .then(response => response.json())
+        .then(data => {
+            displayWishlist(data.wishlist || [], 'wishlistContainer');
+        })
+        .catch(error => {
+            console.error('Error loading wishlist:', error);
+            document.getElementById('wishlistContainer').innerHTML = 
+                '<div class="col-12"><p class="text-danger">Error loading wishlist</p></div>';
+        });
+}
+
+function displayWishlist(wishlist, containerId) {
+    const container = document.getElementById(containerId);
+    
+    if (wishlist.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-heart display-4 text-muted"></i>
+                <h4 class="mt-3 text-muted">Your wishlist is empty</h4>
+                <p class="text-muted">Start adding books you'd like to read!</p>
+                <a href="/search" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Browse Books
+                </a>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = wishlist.map(item => `
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">${item.book_title}</h6>
+                        <button class="btn btn-outline-danger btn-sm" onclick="removeFromWishlist('${item.id}')" title="Remove from wishlist">
+                            <i class="bi bi-heart-fill"></i>
+                        </button>
+                    </div>
+                    <p class="card-text text-muted mb-2">by ${item.book_author}</p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            Added on ${new Date(item.created_at).toLocaleDateString()}
+                        </small>
+                    </p>
+                    <div class="mt-auto">
+                        <div class="btn-group w-100" role="group">
+                            <a href="/books/${item.book_id}" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <button class="btn btn-success" onclick="requestLoan('${item.book_id}', '${item.book_title}')">
+                                <i class="bi bi-journal-plus"></i> Borrow
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function removeFromWishlist(itemId) {
+    if (confirm('Remove this book from your wishlist?')) {
+        fetch(`/api/users/${userId}/wishlist/${itemId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                VulnLib.notifications.success('Book removed from wishlist');
+                loadMyWishlist();
+            } else {
+                VulnLib.notifications.error(data.message || 'Error removing book');
+            }
+        })
+        .catch(error => {
+            console.error('Error removing from wishlist:', error);
+            VulnLib.notifications.error('Error removing book from wishlist');
+        });
+    }
+}
+
+function requestLoan(bookId, bookTitle) {
+    // Simple loan request
+    const today = new Date().toISOString().split('T')[0];
+    const twoWeeksLater = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const loanData = {
+        book_id: bookId,
+        from_date: today,
+        to_date: twoWeeksLater
+    };
+    
+    fetch('/api/loans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loanData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success(`Loan request submitted for "${bookTitle}"`);
+        } else {
+            VulnLib.notifications.error(data.message || 'Error submitting loan request');
+        }
+    })
+    .catch(error => {
+        console.error('Error requesting loan:', error);
+        VulnLib.notifications.error('Error submitting loan request');
+    });
+}
+
+</script>
+{% endblock %}

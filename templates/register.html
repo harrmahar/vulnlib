@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}Register - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-plus-fill display-4 text-success"></i>
+                    <h3 class="mt-2">Join VulnLib</h3>
+                    <p class="text-muted">Create your library account</p>
+                </div>
+                
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   placeholder="Choose a username" required minlength="3" maxlength="20">
+                        </div>
+                        <div class="form-text">3-20 characters, letters and numbers only</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="your.email@example.com" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="Create a strong password" required minlength="6">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                <i class="bi bi-eye" id="passwordIcon"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">Minimum 6 characters</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock-fill"></i>
+                            </span>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
+                                   placeholder="Repeat your password" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleConfirmPassword()">
+                                <i class="bi bi-eye" id="confirmPasswordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                        <label class="form-check-label" for="agreeTerms">
+                            I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a> 
+                            and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100 mb-3" id="registerBtn">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </button>
+                </form>
+                
+                <div class="text-center">
+                    <p class="text-muted">Already have an account?</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-box-arrow-in-right"></i> Login Instead
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms of Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Educational Use Only</h6>
+                <p>This application (VulnLib) is designed for educational purposes only, specifically for web application penetration testing training.</p>
+                
+                <h6>Intended Use</h6>
+                <ul>
+                    <li>Learning about web application vulnerabilities</li>
+                    <li>Practicing ethical hacking techniques</li>
+                    <li>Understanding security best practices</li>
+                </ul>
+                
+                <h6>Prohibited Use</h6>
+                <ul>
+                    <li>Using this application in production environments</li>
+                    <li>Storing real personal or sensitive data</li>
+                    <li>Any malicious activities</li>
+                </ul>
+                
+                <p class="text-warning"><strong>Warning:</strong> This application contains intentional security vulnerabilities. Use only in controlled environments.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Data Collection</h6>
+                <p>This application collects minimal user data for demonstration purposes:</p>
+                <ul>
+                    <li>Username and email for account creation</li>
+                    <li>Activity logs for educational analysis</li>
+                    <li>User interactions with the system</li>
+                </ul>
+                
+                <h6>Data Security</h6>
+                <p class="text-danger"><strong>Important:</strong> This application intentionally contains security vulnerabilities. Do not enter real personal information.</p>
+                
+                <h6>Data Use</h6>
+                <p>All data is used solely for educational and demonstration purposes within the scope of penetration testing training.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirmPassword');
+    
+    // Client-side validation
+    if (password !== confirmPassword) {
+        showToast('Passwords do not match', 'error');
+        return;
+    }
+    
+    const registerData = {
+        username: formData.get('username'),
+        email: formData.get('email'),
+        password: password
+    };
+    
+    const registerBtn = document.getElementById('registerBtn');
+    const originalText = registerBtn.innerHTML;
+    
+    registerBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Creating Account...';
+    registerBtn.disabled = true;
+    
+    fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(registerData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Account created successfully! You can now login.', 'success');
+            setTimeout(() => {
+                window.location.href = '{{ url_for("login") }}';
+            }, 2000);
+        } else {
+            showToast(data.message || 'Registration failed', 'error');
+            registerBtn.innerHTML = originalText;
+            registerBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error during registration:', error);
+        showToast('Registration failed. Please try again.', 'error');
+        registerBtn.innerHTML = originalText;
+        registerBtn.disabled = false;
+    });
+});
+
+function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const passwordIcon = document.getElementById('passwordIcon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        passwordIcon.className = 'bi bi-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        passwordIcon.className = 'bi bi-eye';
+    }
+}
+
+function toggleConfirmPassword() {
+    const confirmPasswordField = document.getElementById('confirmPassword');
+    const confirmPasswordIcon = document.getElementById('confirmPasswordIcon');
+    
+    if (confirmPasswordField.type === 'password') {
+        confirmPasswordField.type = 'text';
+        confirmPasswordIcon.className = 'bi bi-eye-slash';
+    } else {
+        confirmPasswordField.type = 'password';
+        confirmPasswordIcon.className = 'bi bi-eye';
+    }
+}
+
+// Real-time password confirmation validation
+document.getElementById('confirmPassword').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+    
+    if (confirmPassword && password !== confirmPassword) {
+        this.setCustomValidity('Passwords do not match');
+        this.classList.add('is-invalid');
+    } else {
+        this.setCustomValidity('');
+        this.classList.remove('is-invalid');
+        if (confirmPassword) {
+            this.classList.add('is-valid');
+        }
+    }
+});
+
+// Username validation
+document.getElementById('username').addEventListener('input', function() {
+    const username = this.value;
+    const regex = /^[a-zA-Z0-9]+$/;
+    
+    if (username && !regex.test(username)) {
+        this.setCustomValidity('Username can only contain letters and numbers');
+        this.classList.add('is-invalid');
+    } else {
+        this.setCustomValidity('');
+        this.classList.remove('is-invalid');
+        if (username.length >= 3) {
+            this.classList.add('is-valid');
+        }
+    }
+});
+
+function showToast(message, type = 'success') {
+    const toastElement = type === 'success' ? 
+        document.getElementById('successToast') : 
+        document.getElementById('errorToast');
+    const messageElement = type === 'success' ? 
+        document.getElementById('successMessage') : 
+        document.getElementById('errorMessage');
+    
+    messageElement.textContent = message;
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+}
+</script>
+{% endblock %}

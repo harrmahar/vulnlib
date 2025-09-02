@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <!-- Profile Card -->
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar }}" class="rounded-circle" width="100" height="100" alt="Avatar">
+                    {% else %}
+                        <div class="user-avatar" style="width: 100px; height: 100px; font-size: 2rem;">
+                            {{ user.username[0].upper() }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h4>{{ user.username }}</h4>
+                <p class="text-muted">{{ user.email }}</p>
+                <span class="badge bg-primary">{{ user.role.title() }}</span>
+                <div class="mt-3">
+                    <small class="text-muted">Member since: {{ user.created_at.strftime('%B %Y') }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">My Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 id="totalLoans" class="text-primary">-</h4>
+                            <small class="text-muted">Total Loans</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 id="activeLoans" class="text-success">-</h4>
+                        <small class="text-muted">Active Loans</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 id="totalFines" class="text-warning">$-</h4>
+                            <small class="text-muted">Outstanding Fines</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 id="wishlistCount" class="text-info">-</h4>
+                        <small class="text-muted">Wishlist Items</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Picture Upload -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">Profile Picture</h6>
+            </div>
+            <div class="card-body">
+                <form id="avatarForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" name="avatar" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-upload"></i> Upload Picture
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Profile Information -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Profile Information</h5>
+                    <button class="btn btn-primary btn-sm" onclick="editProfile()">
+                        <i class="bi bi-pencil"></i> Edit Profile
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <strong>Username:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.username }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <strong>Email:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.email }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <strong>Role:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <span class="badge bg-primary">{{ user.role.title() }}</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <strong>Member Since:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.created_at.strftime('%B %d, %Y') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div id="recentActivity">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="/my-loans" class="btn btn-primary w-100">
+                            <i class="bi bi-journal"></i><br>
+                            My Loans
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="/my-wishlist" class="btn btn-info w-100">
+                            <i class="bi bi-heart"></i><br>
+                            Wishlist
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="/my-fines" class="btn btn-warning w-100">
+                            <i class="bi bi-currency-dollar"></i><br>
+                            Pay Fines
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="/search" class="btn btn-success w-100">
+                            <i class="bi bi-search"></i><br>
+                            Find Books
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editUsername" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="editUsername" name="username" value="{{ user.username }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editEmail" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">New Password (leave blank to keep current)</label>
+                        <input type="password" class="form-control" id="editPassword" name="password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const userId = '{{ user.id }}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserStats();
+    loadRecentActivity();
+    
+    // Form handlers
+    document.getElementById('editProfileForm').addEventListener('submit', handleProfileUpdate);
+    document.getElementById('avatarForm').addEventListener('submit', handleAvatarUpload);
+});
+
+function loadUserStats() {
+    // Load user loans
+    fetch(`/api/users/${userId}/loans`)
+        .then(response => response.json())
+        .then(data => {
+            const loans = data.loans || [];
+            document.getElementById('totalLoans').textContent = loans.length;
+            document.getElementById('activeLoans').textContent = 
+                loans.filter(loan => loan.status === 'approved' && !loan.returned_at).length;
+        })
+        .catch(error => {
+            console.error('Error loading loans:', error);
+        });
+    
+    // Load user fines
+    fetch(`/api/users/${userId}/fines`)
+        .then(response => response.json())
+        .then(data => {
+            const fines = data.fines || [];
+            const outstandingAmount = fines
+                .filter(fine => fine.status === 'unpaid')
+                .reduce((sum, fine) => sum + fine.amount, 0);
+            document.getElementById('totalFines').textContent = `$${outstandingAmount.toFixed(2)}`;
+        })
+        .catch(error => {
+            console.error('Error loading fines:', error);
+        });
+    
+    // Load wishlist
+    fetch(`/api/users/${userId}/wishlist`)
+        .then(response => response.json())
+        .then(data => {
+            const wishlist = data.wishlist || [];
+            document.getElementById('wishlistCount').textContent = wishlist.length;
+        })
+        .catch(error => {
+            console.error('Error loading wishlist:', error);
+        });
+}
+
+function loadRecentActivity() {
+    // For demo purposes, show recent loans as activity
+    fetch(`/api/users/${userId}/loans`)
+        .then(response => response.json())
+        .then(data => {
+            const loans = (data.loans || []).slice(0, 5);
+            displayRecentActivity(loans);
+        })
+        .catch(error => {
+            console.error('Error loading activity:', error);
+            document.getElementById('recentActivity').innerHTML = 
+                '<p class="text-danger">Error loading recent activity</p>';
+        });
+}
+
+function displayRecentActivity(loans) {
+    const container = document.getElementById('recentActivity');
+    
+    if (loans.length === 0) {
+        container.innerHTML = '<p class="text-muted">No recent activity</p>';
+        return;
+    }
+    
+    const activityHtml = loans.map(loan => {
+        const statusClass = {
+            'pending': 'warning',
+            'approved': 'success',
+            'returned': 'secondary'
+        };
+        
+        const statusIcon = {
+            'pending': 'hourglass-split',
+            'approved': 'check-circle',
+            'returned': 'arrow-return-left'
+        };
+        
+        return `
+            <div class="d-flex align-items-center mb-3">
+                <div class="me-3">
+                    <i class="bi bi-${statusIcon[loan.status] || 'circle'} text-${statusClass[loan.status] || 'muted'}"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">${loan.book_title}</div>
+                    <small class="text-muted">
+                        ${loan.status === 'pending' ? 'Requested' : 
+                          loan.status === 'approved' ? 'Borrowed' : 'Returned'} 
+                        on ${new Date(loan.requested_at).toLocaleDateString()}
+                    </small>
+                </div>
+                <span class="badge bg-${statusClass[loan.status] || 'secondary'}">${loan.status}</span>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = activityHtml;
+}
+
+function editProfile() {
+    new bootstrap.Modal(document.getElementById('editProfileModal')).show();
+}
+
+function handleProfileUpdate(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const profileData = Object.fromEntries(formData.entries());
+    
+    // Remove empty password
+    if (!profileData.password) {
+        delete profileData.password;
+    }
+    
+    fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success('Profile updated successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+            
+            // Refresh page to show updates
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            VulnLib.notifications.error(data.message || 'Error updating profile');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating profile:', error);
+        VulnLib.notifications.error('Error updating profile');
+    });
+}
+
+function handleAvatarUpload(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    // Upload avatar using the proper endpoint
+    fetch(`/api/users/avatar/upload`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success('Avatar uploaded successfully!');
+            e.target.reset();
+        } else {
+            VulnLib.notifications.error(data.message || 'Error uploading avatar');
+        }
+    })
+    .catch(error => {
+        console.error('Error uploading avatar:', error);
+        VulnLib.notifications.error('Avatar upload functionality not implemented');
+    });
+}
+</script>
+{% endblock %}

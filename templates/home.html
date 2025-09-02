@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-4">Welcome to VulnLib</h1>
+            <p class="lead">Your comprehensive library management system for borrowing, managing, and discovering books.</p>
+            {% if not current_user.is_authenticated %}
+            <a class="btn btn-light btn-lg" href="{{ url_for('register') }}">
+                <i class="bi bi-person-plus"></i> Get Started
+            </a>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-center">
+            <i class="bi bi-book display-1"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-book display-4 text-primary"></i>
+                <h5 class="card-title mt-2">Books Available</h5>
+                <p class="card-text display-6" id="totalBooks">-</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-people display-4 text-success"></i>
+                <h5 class="card-title mt-2">Active Members</h5>
+                <p class="card-text display-6" id="totalMembers">-</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-journal-check display-4 text-warning"></i>
+                <h5 class="card-title mt-2">Active Loans</h5>
+                <p class="card-text display-6" id="activeLoans">-</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-star-fill display-4 text-info"></i>
+                <h5 class="card-title mt-2">Categories</h5>
+                <p class="card-text display-6" id="totalCategories">-</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Search -->
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-center mb-3">
+                    <i class="bi bi-search"></i> Find Your Next Book
+                </h5>
+                <form id="quickSearchForm" action="{{ url_for('search') }}" method="GET">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" name="q" placeholder="Search by title, author...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" name="category">
+                                <option value="">All Categories</option>
+                                <option value="Fiction">Fiction</option>
+                                <option value="Non-Fiction">Non-Fiction</option>
+                                <option value="Science">Science</option>
+                                <option value="History">History</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Biography">Biography</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popular Books -->
+<div class="row">
+    <div class="col-12">
+        <h3 class="mb-3">
+            <i class="bi bi-fire"></i> Popular Books
+        </h3>
+        <div class="row" id="popularBooks">
+            <!-- Books will be loaded via JavaScript -->
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Reviews -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h3 class="mb-3">
+            <i class="bi bi-chat-quote"></i> Recent Reviews
+        </h3>
+        <div class="row" id="recentReviews">
+            <!-- Reviews will be loaded via JavaScript -->
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadHomepageData();
+});
+
+function loadHomepageData() {
+    // Load statistics
+    fetch('/api/books?page=1')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalBooks').textContent = data.total || 0;
+        })
+        .catch(error => console.error('Error loading stats:', error));
+    
+    // Load popular books (first 8 books for demo)
+    fetch('/api/books?page=1')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('popularBooks');
+            container.innerHTML = '';
+            
+            if (data.books && data.books.length > 0) {
+                data.books.slice(0, 8).forEach(book => {
+                    const bookCard = createBookCard(book);
+                    container.appendChild(bookCard);
+                });
+            } else {
+                container.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No books available</p></div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading books:', error);
+            document.getElementById('popularBooks').innerHTML = '<div class="col-12 text-center"><p class="text-danger">Error loading books</p></div>';
+        });
+}
+
+function createBookCard(book) {
+    const col = document.createElement('div');
+    col.className = 'col-md-3 mb-4';
+    
+    col.innerHTML = `
+        <div class="card h-100">
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                ${book.cover_url ? 
+                    `<img src="${book.cover_url}" class="img-fluid" style="max-height: 180px;" alt="${book.title}">` :
+                    `<i class="bi bi-book display-4 text-muted"></i>`
+                }
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">${book.title}</h6>
+                <p class="card-text text-muted">${book.author}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">${book.category || 'Uncategorized'}</small>
+                    <span class="badge bg-primary">${book.available_copies}/${book.total_copies}</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="/books/${book.id}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-eye"></i> View Details
+                </a>
+            </div>
+        </div>
+    `;
+    
+    return col;
+}
+</script>
+{% endblock %}

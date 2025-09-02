@@ -1,0 +1,579 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Books - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="bi bi-book"></i> Manage Books
+        </h2>
+        <p class="text-muted">Add, edit, and manage the library catalog</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookModal">
+            <i class="bi bi-plus-circle"></i> Add New Book
+        </button>
+        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bi bi-upload"></i> Import CSV
+        </button>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search books...">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="Fiction">Fiction</option>
+                    <option value="Non-Fiction">Non-Fiction</option>
+                    <option value="Science">Science</option>
+                    <option value="History">History</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Biography">Biography</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Books</option>
+                    <option value="available">Available</option>
+                    <option value="unavailable">Not Available</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" onclick="searchBooks()">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-secondary w-100" onclick="clearFilters()">
+                    <i class="bi bi-x-circle"></i> Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Books Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Library Catalog</h5>
+            <span id="bookCount" class="badge bg-primary">Loading...</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="booksTable" class="table-responsive">
+            <!-- Loaded via JavaScript -->
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading books...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Books pagination" class="mt-3">
+            <div id="pagination"></div>
+        </nav>
+    </div>
+</div>
+
+<!-- Add Book Modal -->
+<div class="modal fade" id="addBookModal" tabindex="-1" aria-labelledby="addBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBookModalLabel">Add New Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addBookForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="author" class="form-label">Author *</label>
+                                <input type="text" class="form-control" id="author" name="author" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="isbn" class="form-label">ISBN</label>
+                                <input type="text" class="form-control" id="isbn" name="isbn" placeholder="978-0-123456-78-9">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select" id="category" name="category">
+                                    <option value="">Select Category</option>
+                                    <option value="Fiction">Fiction</option>
+                                    <option value="Non-Fiction">Non-Fiction</option>
+                                    <option value="Science">Science</option>
+                                    <option value="History">History</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Biography">Biography</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="year_published" class="form-label">Year Published</label>
+                                <input type="number" class="form-control" id="year_published" name="year_published" min="1800" max="2030">
+                            </div>
+                            <div class="mb-3">
+                                <label for="total_copies" class="form-label">Total Copies</label>
+                                <input type="number" class="form-control" id="total_copies" name="total_copies" min="1" value="1">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cover_url" class="form-label">Cover URL</label>
+                                <input type="url" class="form-control" id="cover_url" name="cover_url" placeholder="https://example.com/cover.jpg">
+                            </div>
+                            <div class="mb-3">
+                                <label for="metadata_url" class="form-label">Metadata URL</label>
+                                <input type="url" class="form-control" id="metadata_url" name="metadata_url" placeholder="https://api.example.com/metadata">
+                            </div>
+                            <div class="mb-3">
+                                <label for="tags" class="form-label">Tags</label>
+                                <input type="text" class="form-control" id="tags" name="tags" placeholder="Comma-separated tags">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Book Modal -->
+<div class="modal fade" id="editBookModal" tabindex="-1" aria-labelledby="editBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBookModalLabel">Edit Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editBookForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editBookId" name="bookId">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editTitle" class="form-label">Title *</label>
+                                <input type="text" class="form-control" id="editTitle" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editAuthor" class="form-label">Author *</label>
+                                <input type="text" class="form-control" id="editAuthor" name="author" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editIsbn" class="form-label">ISBN</label>
+                                <input type="text" class="form-control" id="editIsbn" name="isbn">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editCategory" class="form-label">Category</label>
+                                <select class="form-select" id="editCategory" name="category">
+                                    <option value="">Select Category</option>
+                                    <option value="Fiction">Fiction</option>
+                                    <option value="Non-Fiction">Non-Fiction</option>
+                                    <option value="Science">Science</option>
+                                    <option value="History">History</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Biography">Biography</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editYear" class="form-label">Year Published</label>
+                                <input type="number" class="form-control" id="editYear" name="year_published" min="1800" max="2030">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editCopies" class="form-label">Total Copies</label>
+                                <input type="number" class="form-control" id="editCopies" name="total_copies" min="1">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="editDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Books Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Import Books from CSV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="importForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label">CSV File</label>
+                        <input type="file" class="form-control" id="csvFile" name="file" accept=".csv" required>
+                        <div class="form-text">CSV should have columns: title, author, isbn, category, description</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="importNotes" class="form-label">Import Notes</label>
+                        <textarea class="form-control" id="importNotes" name="notes" rows="3" 
+                                placeholder="Notes about this import..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import Books</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Files Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload Book Files</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" id="uploadBookId" name="bookId">
+                    <div class="mb-3">
+                        <label for="bookFile" class="form-label">Book File</label>
+                        <input type="file" class="form-control" id="bookFile" name="file" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Upload File</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentPage = 1;
+let currentFilters = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadBooks();
+    
+    // Event listeners
+    document.getElementById('addBookForm').addEventListener('submit', handleAddBook);
+    document.getElementById('editBookForm').addEventListener('submit', handleEditBook);
+    document.getElementById('importForm').addEventListener('submit', handleImport);
+    document.getElementById('uploadForm').addEventListener('submit', handleFileUpload);
+    
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchBooks();
+        }
+    });
+});
+
+function loadBooks(page = 1) {
+    currentPage = page;
+    const params = new URLSearchParams({
+        page: page,
+        ...currentFilters
+    });
+    
+    VulnLib.loading.show('#booksTable');
+    
+    fetch(`/api/books?${params}`)
+        .then(response => response.json())
+        .then(data => {
+            displayBooksTable(data.books);
+            VulnLib.pagination.render(data.page, data.pages, loadBooks, 'pagination');
+            document.getElementById('bookCount').textContent = `${data.total} books`;
+        })
+        .catch(error => {
+            console.error('Error loading books:', error);
+            document.getElementById('booksTable').innerHTML = '<p class="text-danger">Error loading books</p>';
+        });
+}
+
+function displayBooksTable(books) {
+    const container = document.getElementById('booksTable');
+    
+    if (!books || books.length === 0) {
+        container.innerHTML = '<p class="text-muted">No books found</p>';
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Category</th>
+                <th>Copies</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${books.map(book => `
+                <tr>
+                    <td>
+                        <div>
+                            <strong>${book.title}</strong>
+                            ${book.isbn ? `<br><small class="text-muted">ISBN: ${book.isbn}</small>` : ''}
+                        </div>
+                    </td>
+                    <td>${book.author}</td>
+                    <td>
+                        ${book.category ? `<span class="badge bg-secondary">${book.category}</span>` : '-'}
+                    </td>
+                    <td>
+                        <span class="badge ${book.available_copies > 0 ? 'bg-success' : 'bg-danger'}">
+                            ${book.available_copies}/${book.total_copies}
+                        </span>
+                    </td>
+                    <td>
+                        ${book.available_copies > 0 ? 
+                            '<span class="text-success">Available</span>' : 
+                            '<span class="text-danger">Not Available</span>'
+                        }
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a href="/books/${book.id}" class="btn btn-outline-primary" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <button class="btn btn-outline-warning" onclick="editBook('${book.id}')" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-info" onclick="uploadFile('${book.id}')" title="Upload File">
+                                <i class="bi bi-upload"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteBook('${book.id}')" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function searchBooks() {
+    currentFilters = {
+        search: document.getElementById('searchInput').value,
+        category: document.getElementById('categoryFilter').value,
+        status: document.getElementById('statusFilter').value
+    };
+    
+    // Remove empty filters
+    Object.keys(currentFilters).forEach(key => {
+        if (!currentFilters[key]) {
+            delete currentFilters[key];
+        }
+    });
+    
+    loadBooks(1);
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    currentFilters = {};
+    loadBooks(1);
+}
+
+function handleAddBook(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const bookData = Object.fromEntries(formData.entries());
+    bookData.available_copies = bookData.total_copies;
+    
+    fetch('/api/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success('Book added successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('addBookModal')).hide();
+            e.target.reset();
+            loadBooks(currentPage);
+        } else {
+            VulnLib.notifications.error(data.message || 'Error adding book');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        VulnLib.notifications.error('Error adding book');
+    });
+}
+
+function editBook(bookId) {
+    fetch(`/api/books/${bookId}`)
+        .then(response => response.json())
+        .then(book => {
+            document.getElementById('editBookId').value = book.id;
+            document.getElementById('editTitle').value = book.title;
+            document.getElementById('editAuthor').value = book.author;
+            document.getElementById('editIsbn').value = book.isbn || '';
+            document.getElementById('editCategory').value = book.category || '';
+            document.getElementById('editYear').value = book.year_published || '';
+            document.getElementById('editCopies').value = book.total_copies;
+            document.getElementById('editDescription').value = book.description || '';
+            
+            new bootstrap.Modal(document.getElementById('editBookModal')).show();
+        })
+        .catch(error => {
+            console.error('Error loading book:', error);
+            VulnLib.notifications.error('Error loading book details');
+        });
+}
+
+function handleEditBook(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const bookData = Object.fromEntries(formData.entries());
+    const bookId = bookData.bookId;
+    delete bookData.bookId;
+    
+    fetch(`/api/books/${bookId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success('Book updated successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('editBookModal')).hide();
+            loadBooks(currentPage);
+        } else {
+            VulnLib.notifications.error(data.message || 'Error updating book');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        VulnLib.notifications.error('Error updating book');
+    });
+}
+
+function deleteBook(bookId) {
+    if (confirm('Are you sure you want to delete this book?')) {
+        fetch(`/api/books/${bookId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                VulnLib.notifications.success('Book deleted successfully!');
+                loadBooks(currentPage);
+            } else {
+                VulnLib.notifications.error(data.message || 'Error deleting book');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            VulnLib.notifications.error('Error deleting book');
+        });
+    }
+}
+
+function uploadFile(bookId) {
+    document.getElementById('uploadBookId').value = bookId;
+    new bootstrap.Modal(document.getElementById('uploadModal')).show();
+}
+
+function handleFileUpload(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const bookId = formData.get('bookId');
+    
+    fetch(`/api/books/${bookId}/upload`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success('File uploaded successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+            e.target.reset();
+        } else {
+            VulnLib.notifications.error(data.message || 'Error uploading file');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        VulnLib.notifications.error('Error uploading file');
+    });
+}
+
+function handleImport(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    fetch('/api/books/import', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success(data.message);
+            bootstrap.Modal.getInstance(document.getElementById('importModal')).hide();
+            e.target.reset();
+            loadBooks(currentPage);
+        } else {
+            VulnLib.notifications.error(data.message || 'Error importing books');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        VulnLib.notifications.error('Error importing books');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,569 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="bi bi-people"></i> User Management
+        </h2>
+        <p class="text-muted">Manage system users and permissions</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="bi bi-person-plus"></i> Create New User
+        </button>
+    </div>
+</div>
+
+
+<!-- User Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Total Users</h6>
+                        <h3 id="totalUsers">-</h3>
+                    </div>
+                    <i class="bi bi-people display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Members</h6>
+                        <h3 id="memberCount">-</h3>
+                    </div>
+                    <i class="bi bi-person display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Librarians</h6>
+                        <h3 id="librarianCount">-</h3>
+                    </div>
+                    <i class="bi bi-book display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Admins</h6>
+                        <h3 id="adminCount">-</h3>
+                    </div>
+                    <i class="bi bi-shield display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search users...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="roleFilter">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="librarian">Librarian</option>
+                    <option value="member">Member</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Users</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" onclick="searchUsers()">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">System Users</h5>
+            <div class="btn-group btn-group-sm" role="group">
+                <button class="btn btn-outline-primary" onclick="exportUsers('csv')">
+                    <i class="bi bi-download"></i> Export CSV
+                </button>
+                <button class="btn btn-outline-info" onclick="exportUsers('json')">
+                    <i class="bi bi-download"></i> Export JSON
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="usersTable" class="table-responsive">
+            <!-- Loaded via JavaScript -->
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading users...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createUserModalLabel">Create New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createUserForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newUsername" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="newUsername" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="newEmail" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="newPassword" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newRole" class="form-label">Role</label>
+                        <select class="form-select" id="newRole" name="role" required>
+                            <option value="member">Member</option>
+                            <option value="librarian">Librarian</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editUserForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editUserId" name="userId">
+                    <div class="mb-3">
+                        <label for="editUsername" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="editUsername" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editEmail" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">New Password (leave blank to keep current)</label>
+                        <input type="password" class="form-control" id="editPassword" name="password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRole" class="form-label">Role</label>
+                        <select class="form-select" id="editRole" name="role" required>
+                            <option value="member">Member</option>
+                            <option value="librarian">Librarian</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editActive" name="active">
+                            <label class="form-check-label" for="editActive">
+                                Active User
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let users = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Check access control
+    if ('{{ user.role }}' !== 'admin') {
+        document.getElementById('accessWarning').style.display = 'block';
+        VulnLib.notifications.warning('Accessing admin functionality without proper authorization!');
+    }
+    
+    loadUsers();
+    
+    // Event listeners
+    document.getElementById('createUserForm').addEventListener('submit', handleCreateUser);
+    document.getElementById('editUserForm').addEventListener('submit', handleEditUser);
+    
+    // Search on enter
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchUsers();
+        }
+    });
+});
+
+function loadUsers() {
+    fetch('/api/admin/users')
+        .then(response => response.json())
+        .then(data => {
+            if (data.users) {
+                users = data.users;
+                displayUsers(users);
+                updateStats();
+            } else {
+                throw new Error(data.message || 'Failed to load users');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading users:', error);
+            document.getElementById('usersTable').innerHTML = 
+                '<div class="alert alert-warning">Unable to display user list at this time.</div>';
+        });
+}
+
+function updateStats() {
+    const totalUsers = users.length;
+    const memberCount = users.filter(user => user.role === 'member').length;
+    const librarianCount = users.filter(user => user.role === 'librarian').length;
+    const adminCount = users.filter(user => user.role === 'admin').length;
+    
+    document.getElementById('totalUsers').textContent = totalUsers;
+    document.getElementById('memberCount').textContent = memberCount;
+    document.getElementById('librarianCount').textContent = librarianCount;
+    document.getElementById('adminCount').textContent = adminCount;
+}
+
+function displayUsers(userList) {
+    const container = document.getElementById('usersTable');
+    
+    if (userList.length === 0) {
+        container.innerHTML = '<p class="text-muted">No users found</p>';
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${userList.map(user => {
+                const roleClass = {
+                    'admin': 'bg-danger',
+                    'librarian': 'bg-warning',
+                    'member': 'bg-primary'
+                };
+                
+                return `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-2" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                    ${user.username[0].toUpperCase()}
+                                </div>
+                                <div>
+                                    <strong>${user.username}</strong>
+                                    <br><small class="text-muted">ID: ${user.id}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${user.email}</td>
+                        <td>
+                            <span class="badge ${roleClass[user.role] || 'bg-secondary'}">
+                                ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                            </span>
+                        </td>
+                        <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <span class="badge bg-success">Active</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-outline-primary" onclick="viewUser('${user.id}')" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="editUser('${user.id}')" title="Edit User">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-info" onclick="impersonateUser('${user.id}', '${user.username}')" title="Impersonate (Admin)">
+                                    <i class="bi bi-person-circle"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteUser('${user.id}', '${user.username}')" title="Delete User">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function searchUsers() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const roleFilter = document.getElementById('roleFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    let filteredUsers = users;
+    
+    if (searchTerm) {
+        filteredUsers = filteredUsers.filter(user => 
+            user.username.toLowerCase().includes(searchTerm) ||
+            user.email.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    if (roleFilter) {
+        filteredUsers = filteredUsers.filter(user => user.role === roleFilter);
+    }
+    
+    // Status filter would be implemented here
+    
+    displayUsers(filteredUsers);
+}
+
+function handleCreateUser(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const userData = Object.fromEntries(formData.entries());
+    
+    fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success('User created successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
+            e.target.reset();
+            loadUsers();
+        } else {
+            VulnLib.notifications.error(data.message || 'Error creating user');
+        }
+    })
+    .catch(error => {
+        console.error('Error creating user:', error);
+        VulnLib.notifications.error('Error creating user');
+    });
+}
+
+function editUser(userId) {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    document.getElementById('editUserId').value = user.id;
+    document.getElementById('editUsername').value = user.username;
+    document.getElementById('editEmail').value = user.email;
+    document.getElementById('editRole').value = user.role;
+    document.getElementById('editActive').checked = true; // Assume active
+    
+    new bootstrap.Modal(document.getElementById('editUserModal')).show();
+}
+
+function handleEditUser(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const userData = Object.fromEntries(formData.entries());
+    const userId = userData.userId;
+    delete userData.userId;
+    
+    // Remove empty password
+    if (!userData.password) {
+        delete userData.password;
+    }
+    
+    fetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success('User updated successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+            loadUsers();
+        } else {
+            VulnLib.notifications.error(data.message || 'Error updating user');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user:', error);
+        VulnLib.notifications.error('Error updating user');
+    });
+}
+
+function deleteUser(userId, username) {
+    if (confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+        fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                VulnLib.notifications.success(`User "${username}" deleted successfully!`);
+                loadUsers();
+            } else {
+                VulnLib.notifications.error(data.message || 'Error deleting user');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting user:', error);
+            VulnLib.notifications.error('Error deleting user');
+        });
+    }
+}
+
+function viewUser(userId) {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    const userDetails = `
+        User ID: ${user.id}
+        Username: ${user.username}
+        Email: ${user.email}
+        Role: ${user.role}
+        Created: ${new Date(user.created_at).toLocaleDateString()}
+    `;
+    
+    alert(userDetails);
+}
+
+function impersonateUser(userId, username) {
+    if (confirm(`Impersonate user "${username}"? This will log you in as that user.`)) {
+        VulnLib.notifications.warning(`Impersonation feature not implemented - but this would be a major security risk!`);
+        
+        // In a real vulnerable system, this might do:
+        // window.location.href = `/admin/impersonate/${userId}`;
+    }
+}
+
+function exportUsers(format) {
+    // Fetch users directly for export (bypasses display restrictions)
+    fetch('/api/admin/users')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.users) {
+                throw new Error('No user data available');
+            }
+            
+            const exportData = data.users.map(user => ({
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                created_at: user.created_at,
+                // VULN: Including sensitive data in export
+                password_hint: user.username + '_password',
+                internal_id: user.id
+            }));
+            
+            let content, filename, mimeType;
+            
+            if (format === 'csv') {
+                // VULN: CSV Injection - malicious data could execute in Excel
+                const headers = Object.keys(exportData[0]);
+                const csvContent = [
+                    headers.join(','),
+                    ...exportData.map(user => 
+                        headers.map(header => {
+                            let value = user[header] || '';
+                            // VULN: No CSV injection protection
+                            if (typeof value === 'string' && value.includes(',')) {
+                                value = `"${value}"`;
+                            }
+                            return value;
+                        }).join(',')
+                    )
+                ].join('\n');
+                
+                content = csvContent;
+                filename = 'users_export.csv';
+                mimeType = 'text/csv';
+            } else {
+                content = JSON.stringify(exportData, null, 2);
+                filename = 'users_export.json';
+                mimeType = 'application/json';
+            }
+            
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            VulnLib.notifications.success(`Users exported to ${filename}!`);
+        })
+        .catch(error => {
+            console.error('Export error:', error);
+            VulnLib.notifications.error('Export failed');
+        });
+}
+</script>
+{% endblock %}

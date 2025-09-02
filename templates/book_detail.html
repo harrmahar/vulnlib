@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Book Information -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    {% if book.cover_url %}
+                        <img src="{{ book.cover_url }}" class="img-fluid rounded" style="max-height: 300px;" alt="{{ book.title }}">
+                    {% else %}
+                        <div class="bg-light p-5 rounded">
+                            <i class="bi bi-book display-1 text-muted"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <span class="badge bg-primary">{{ book.category or 'Uncategorized' }}</span>
+                    {% if book.year_published %}
+                    <span class="badge bg-secondary">{{ book.year_published }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="availability-info">
+                    <h6>Availability</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="display-6 {{ 'text-success' if book.available_copies > 0 else 'text-danger' }}">
+                                    {{ book.available_copies }}
+                                </div>
+                                <small class="text-muted">Available</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="display-6 text-primary">{{ book.total_copies }}</div>
+                                <small class="text-muted">Total</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if current_user.is_authenticated and book.available_copies > 0 %}
+                <div class="mt-3">
+                    <button class="btn btn-success w-100" onclick="requestLoan('{{ book.id }}')">
+                        <i class="bi bi-journal-plus"></i> Request Loan
+                    </button>
+                </div>
+                {% endif %}
+                
+                {% if current_user.is_authenticated %}
+                <div class="mt-2">
+                    <button class="btn btn-outline-primary w-100" onclick="addToWishlist('{{ book.id }}')">
+                        <i class="bi bi-heart"></i> Add to Wishlist
+                    </button>
+                </div>
+                {% endif %}
+                
+                <!-- VULN: Open Redirect - next parameter not validated -->
+                <!-- Default Go Back button that goes to home -->
+                <div class="mt-3">
+                    <a href="/books/{{ book.id }}?next=/" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-left"></i> Go Back
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional Info -->
+        {% if book.isbn or book.tags %}
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6>Details</h6>
+                {% if book.isbn %}
+                <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+                {% endif %}
+                {% if book.tags %}
+                <p><strong>Tags:</strong> 
+                    {% for tag in book.tags.split(',') %}
+                        <span class="badge bg-light text-dark">{{ tag.strip() }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+                {% if book.metadata_url %}
+                <p>
+                    <a href="{{ book.metadata_url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-info-circle"></i> More Info
+                    </a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Book Details -->
+    <div class="col-md-8">
+        <div class="mb-4">
+            <h1>{{ book.title }}</h1>
+            <p class="lead text-muted">by {{ book.author }}</p>
+            
+            {% if book.description %}
+            <div class="mt-3">
+                <h5>Description</h5>
+                <p>{{ book.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Reviews Section -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-quote"></i> Reviews & Comments
+                    </h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                        <i class="bi bi-plus"></i> Add Review
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="reviewsList">
+                    <!-- Reviews loaded via JavaScript -->
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading reviews...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalLabel">Add Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reviewForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating</label>
+                        <select class="form-select" id="rating" name="rating" required>
+                            <option value="">Select rating</option>
+                            <option value="1">1 Star - Poor</option>
+                            <option value="2">2 Stars - Fair</option>
+                            <option value="3">3 Stars - Good</option>
+                            <option value="4">4 Stars - Very Good</option>
+                            <option value="5">5 Stars - Excellent</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Comment</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="4" 
+                                placeholder="Share your thoughts about this book..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loan Request Modal -->
+<div class="modal fade" id="loanModal" tabindex="-1" aria-labelledby="loanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loanModalLabel">Request Loan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="loanForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="fromDate" class="form-label">From Date</label>
+                        <input type="date" class="form-control" id="fromDate" name="from_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="toDate" class="form-label">Return Date</label>
+                        <input type="date" class="form-control" id="toDate" name="to_date" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const bookId = '{{ book.id }}';
+const nextUrl = '{{ next_url|safe }}';
+
+// VULN: Automatic redirect on page load - makes open redirect more dangerous
+// Commented out to fix /books/None issue
+// if (nextUrl && nextUrl.trim() !== '') {
+//     // Redirect immediately when page loads
+//     window.location.href = nextUrl;
+// }
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadReviews();
+    
+    // Set default dates
+    const today = new Date().toISOString().split('T')[0];
+    const twoWeeksLater = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    document.getElementById('fromDate').value = today;
+    document.getElementById('toDate').value = twoWeeksLater;
+    
+    // Handle review form submission
+    document.getElementById('reviewForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitReview();
+    });
+    
+    // Handle loan form submission  
+    document.getElementById('loanForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitLoanRequest();
+    });
+});
+
+function loadReviews() {
+    fetch(`/api/books/${bookId}/reviews`)
+        .then(response => response.json())
+        .then(data => {
+            displayReviews(data.reviews);
+        })
+        .catch(error => {
+            console.error('Error loading reviews:', error);
+            document.getElementById('reviewsList').innerHTML = 
+                '<p class="text-danger">Error loading reviews</p>';
+        });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function displayReviews(reviews) {
+    const container = document.getElementById('reviewsList');
+    
+    if (reviews.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-3 text-muted">
+                <i class="bi bi-chat display-4"></i>
+                <p class="mt-2">No reviews yet. Be the first to share your thoughts!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    reviews.forEach(review => {
+        const reviewElement = document.createElement('div');
+        reviewElement.className = 'border-bottom pb-3 mb-3';
+        
+        // Fixed: Review comments are now properly escaped to prevent XSS
+        reviewElement.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="d-flex align-items-center mb-1">
+                        <strong>${escapeHtml(review.username)}</strong>
+                        <div class="ms-2">
+                            ${generateStars(review.rating)}
+                        </div>
+                    </div>
+                    <p class="mb-1">${escapeHtml(review.comment)}</p>
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ${new Date(review.created_at).toLocaleDateString()}
+                    </small>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(reviewElement);
+    });
+}
+
+function generateStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            stars += '<i class="bi bi-star-fill text-warning"></i>';
+        } else {
+            stars += '<i class="bi bi-star text-muted"></i>';
+        }
+    }
+    return stars;
+}
+
+function submitReview() {
+    const formData = new FormData(document.getElementById('reviewForm'));
+    
+    const reviewData = {
+        rating: parseInt(formData.get('rating')),
+        comment: formData.get('comment'),
+        user_id: '{{ current_user.id if current_user.is_authenticated else "" }}'  // VULN: Client-side user ID
+    };
+    
+    fetch(`/api/books/${bookId}/reviews`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Review added successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+            loadReviews(); // Reload reviews
+            document.getElementById('reviewForm').reset();
+        } else {
+            showToast(data.message || 'Error adding review', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting review:', error);
+        showToast('Error submitting review', 'error');
+    });
+}
+
+function requestLoan(bookId) {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('loanModal')).show();
+}
+
+function submitLoanRequest() {
+    const formData = new FormData(document.getElementById('loanForm'));
+    
+    const loanData = {
+        book_id: bookId,
+        from_date: formData.get('from_date'),
+        to_date: formData.get('to_date')
+    };
+    
+    fetch('/api/loans', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loanData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Loan request submitted successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('loanModal')).hide();
+            document.getElementById('loanForm').reset();
+        } else {
+            showToast(data.message || 'Error submitting loan request', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting loan request:', error);
+        showToast('Error submitting loan request', 'error');
+    });
+}
+
+function addToWishlist(bookId) {
+    const userId = '{{ current_user.id if current_user.is_authenticated else "" }}';
+    
+    fetch(`/api/users/${userId}/wishlist`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ book_id: bookId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Added to wishlist!');
+        } else {
+            showToast(data.message || 'Error adding to wishlist', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding to wishlist:', error);
+        showToast('Error adding to wishlist', 'error');
+    });
+}
+
+function showToast(message, type = 'success') {
+    const toastElement = type === 'success' ? 
+        document.getElementById('successToast') : 
+        document.getElementById('errorToast');
+    const messageElement = type === 'success' ? 
+        document.getElementById('successMessage') : 
+        document.getElementById('errorMessage');
+    
+    messageElement.textContent = message;
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+}
+</script>
+{% endblock %}

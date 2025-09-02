@@ -1,0 +1,326 @@
+/* VulnLib Custom Styles */
+
+:root {
+    --primary-color: #2c5282;
+    --secondary-color: #4a5568;
+    --success-color: #38a169;
+    --warning-color: #d69e2e;
+    --danger-color: #e53e3e;
+    --info-color: #3182ce;
+    --light-bg: #f7fafc;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-bg);
+    color: #2d3748;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: var(--card-shadow);
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Navbar */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: #cbd5e0;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #2a4365;
+    border-color: #2a4365;
+}
+
+/* Forms */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(44, 82, 130, 0.25);
+}
+
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(44, 82, 130, 0.25);
+}
+
+/* Hero Section */
+.jumbotron {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #4a5568 100%);
+    border-radius: 12px;
+}
+
+/* Book Cards */
+.book-card {
+    transition: all 0.3s ease;
+}
+
+.book-card:hover {
+    transform: scale(1.05);
+}
+
+.book-cover-placeholder {
+    background: linear-gradient(45deg, #e2e8f0, #cbd5e0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    border-radius: 4px;
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    border-radius: 4px;
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Tables */
+.table {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}
+
+.table thead th {
+    background-color: #f7fafc;
+    border: none;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.table tbody tr:hover {
+    background-color: #f7fafc;
+}
+
+/* Loading Spinners */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Toast Notifications */
+.toast-container {
+    z-index: 1050;
+}
+
+.toast {
+    min-width: 300px;
+}
+
+/* Search Results */
+.search-highlight {
+    background-color: yellow;
+    font-weight: bold;
+}
+
+/* Stats Cards */
+.stats-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.15);
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Reviews */
+.review-stars {
+    color: #f6ad55;
+}
+
+.review-card {
+    border-left: 4px solid var(--primary-color);
+    background-color: white;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0 8px 8px 0;
+}
+
+/* User Avatar */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: white;
+    box-shadow: var(--card-shadow);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.sidebar-nav .nav-link {
+    color: #4a5568;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-nav .nav-link:hover {
+    background-color: var(--light-bg);
+    color: var(--primary-color);
+}
+
+.sidebar-nav .nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .stats-number {
+        font-size: 2rem;
+    }
+    
+    .jumbotron h1 {
+        font-size: 2rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Utility Classes */
+.text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #4a5568 100%);
+}
+
+.border-left-primary {
+    border-left: 4px solid var(--primary-color);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Book Availability Status */
+.availability-good { color: var(--success-color); }
+.availability-low { color: var(--warning-color); }
+.availability-out { color: var(--danger-color); }
+
+/* Admin Panel Styles */
+.admin-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.librarian-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.member-card {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+/* Vulnerability indicators (for educational purposes) */
+.vuln-indicator {
+    position: relative;
+}
+
+.vuln-indicator::after {
+    content: "⚠️";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --light-bg: #1a202c;
+    }
+    
+    body {
+        background-color: var(--light-bg);
+        color: #e2e8f0;
+    }
+}

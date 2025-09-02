@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  vulnlib-app:
+    build: .
+    ports:
+      - "80:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./instance:/app/instance
+      - ./static/uploads:/app/static/uploads
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - SECRET_KEY=vuln-library-secret-key-2024
+    restart: unless-stopped
+    networks:
+      - vulnlib-network
+
+  # Optional: Add a database service for production use
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: vulnlib
+  #     POSTGRES_USER: vulnlib
+  #     POSTGRES_PASSWORD: vulnlib_password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - vulnlib-network
+
+  # Optional: Add Redis for caching
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - vulnlib-network
+
+networks:
+  vulnlib-network:
+    driver: bridge
+
+# volumes:
+#   postgres_data:

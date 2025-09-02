@@ -1,0 +1,602 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="bi bi-file-text"></i> Audit Logs
+        </h2>
+        <p class="text-muted">System activity monitoring and security audit trail</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-download"></i> Export Logs
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="exportLogs('json')">Export JSON</a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportLogs('csv')">Export CSV</a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportLogs('txt')">Export Text</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Access Control Warning -->
+<div class="alert alert-warning" id="accessWarning" style="display: none;">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-shield-exclamation me-2"></i>
+        <div>
+            <strong>Access Control Bypass!</strong>
+            You are viewing audit logs without proper admin privileges. This demonstrates broken access control.
+        </div>
+    </div>
+</div>
+
+<!-- Log Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Total Logs</h6>
+                        <h3 id="totalLogs">-</h3>
+                    </div>
+                    <i class="bi bi-file-text display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Login Events</h6>
+                        <h3 id="loginCount">-</h3>
+                    </div>
+                    <i class="bi bi-box-arrow-in-right display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Security Events</h6>
+                        <h3 id="securityCount">-</h3>
+                    </div>
+                    <i class="bi bi-shield-exclamation display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Error Events</h6>
+                        <h3 id="errorCount">-</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">Filter Logs</h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search in logs...">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="actionFilter">
+                    <option value="">All Actions</option>
+                    <option value="login">Login</option>
+                    <option value="logout">Logout</option>
+                    <option value="create_user">Create User</option>
+                    <option value="create_book">Create Book</option>
+                    <option value="import_books">Import Books</option>
+                    <option value="security_event">Security Event</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="resourceFilter">
+                    <option value="">All Resources</option>
+                    <option value="user">User</option>
+                    <option value="book">Book</option>
+                    <option value="loan">Loan</option>
+                    <option value="system">System</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="dateFilter">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" onclick="filterLogs()">
+                    <i class="bi bi-filter"></i> Filter
+                </button>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-secondary w-100" onclick="clearFilters()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="realTimeUpdate">
+                    <label class="form-check-label" for="realTimeUpdate">
+                        Real-time updates
+                    </label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="showSensitive">
+                    <label class="form-check-label" for="showSensitive">
+                        Show sensitive data (Security Risk)
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logs Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">System Activity Logs</h5>
+            <div>
+                <button class="btn btn-outline-warning btn-sm" onclick="injectTestLog()">
+                    <i class="bi bi-bug"></i> Inject Test Log (XSS)
+                </button>
+                <button class="btn btn-outline-danger btn-sm" onclick="simulateAttack()">
+                    <i class="bi bi-shield-exclamation"></i> Simulate Attack
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="logsTable" class="table-responsive">
+            <!-- Loaded via JavaScript -->
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading logs...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Load More Button -->
+        <div class="text-center mt-3">
+            <button class="btn btn-outline-primary" id="loadMoreBtn" onclick="loadMoreLogs()">
+                <i class="bi bi-arrow-down"></i> Load More Logs
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Log Details Modal -->
+<div class="modal fade" id="logDetailsModal" tabindex="-1" aria-labelledby="logDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logDetailsModalLabel">Log Entry Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="logDetailsContent">
+                    <!-- Log details will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="flagLogEntry()">Flag as Important</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let logs = [];
+let filteredLogs = [];
+let currentSelectedLog = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Check access control
+    if ('{{ user.role }}' !== 'admin') {
+        document.getElementById('accessWarning').style.display = 'block';
+        VulnLib.notifications.warning('Accessing audit logs without proper admin privileges!');
+    }
+    
+    loadLogs();
+    
+    // Real-time updates if enabled
+    setInterval(() => {
+        if (document.getElementById('realTimeUpdate').checked) {
+            loadLogs(true); // Silent update
+        }
+    }, 10000);
+    
+    // Search on enter
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            filterLogs();
+        }
+    });
+});
+
+function loadLogs(silent = false) {
+    if (!silent) {
+        VulnLib.loading.show('#logsTable');
+    }
+    
+    fetch('/api/admin/logs')
+        .then(response => response.json())
+        .then(data => {
+            if (data.logs) {
+                logs = data.logs;
+                filteredLogs = logs;
+                displayLogs(filteredLogs);
+                updateStats();
+            } else {
+                throw new Error(data.message || 'Failed to load logs');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading logs:', error);
+            if (!silent) {
+                document.getElementById('logsTable').innerHTML = 
+                    '<div class="alert alert-danger">Error loading logs. Access might be restricted.</div>';
+            }
+        });
+}
+
+function updateStats() {
+    const totalLogs = logs.length;
+    const loginCount = logs.filter(log => log.action === 'login').length;
+    const securityCount = logs.filter(log => log.action.includes('security') || log.details?.includes('XSS') || log.details?.includes('injection')).length;
+    const errorCount = logs.filter(log => log.details?.includes('error') || log.details?.includes('failed')).length;
+    
+    document.getElementById('totalLogs').textContent = totalLogs;
+    document.getElementById('loginCount').textContent = loginCount;
+    document.getElementById('securityCount').textContent = securityCount;
+    document.getElementById('errorCount').textContent = errorCount;
+}
+
+function displayLogs(logList) {
+    const container = document.getElementById('logsTable');
+    
+    if (logList.length === 0) {
+        container.innerHTML = '<p class="text-muted">No logs found matching your criteria</p>';
+        return;
+    }
+    
+    const showSensitive = document.getElementById('showSensitive').checked;
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover table-sm';
+    table.innerHTML = `
+        <thead class="table-dark">
+            <tr>
+                <th>Timestamp</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Resource</th>
+                <th>IP Address</th>
+                <th>Details</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${logList.map(log => {
+                const actionClass = {
+                    'login': 'text-success',
+                    'logout': 'text-muted',
+                    'create_user': 'text-primary',
+                    'create_book': 'text-info',
+                    'import_books': 'text-warning',
+                    'security_event': 'text-danger'
+                };
+                
+                const actionIcon = {
+                    'login': 'box-arrow-in-right',
+                    'logout': 'box-arrow-left',
+                    'create_user': 'person-plus',
+                    'create_book': 'book',
+                    'import_books': 'upload',
+                    'security_event': 'shield-exclamation'
+                };
+                
+                // VULN: XSS in log details - stored XSS from import notes, etc.
+                const details = log.details || '-';
+                
+                return `
+                    <tr class="${log.action === 'security_event' ? 'table-warning' : ''}">
+                        <td>
+                            <small>${new Date(log.created_at).toLocaleString()}</small>
+                        </td>
+                        <td>
+                            ${log.user_id ? 
+                                `<span class="text-primary">${log.user_id}</span>` : 
+                                '<span class="text-muted">System</span>'
+                            }
+                        </td>
+                        <td>
+                            <i class="bi bi-${actionIcon[log.action] || 'circle'} ${actionClass[log.action] || 'text-secondary'}"></i>
+                            <span class="ms-1">${log.action.replace('_', ' ')}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">${log.resource_type || 'system'}</span>
+                            ${log.resource_id ? `<br><small class="text-muted">${log.resource_id}</small>` : ''}
+                        </td>
+                        <td>
+                            <code>${log.ip_address || 'unknown'}</code>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 200px;" title="${details}">
+                                ${showSensitive ? details : (details.length > 50 ? details.substring(0, 50) + '...' : details)}
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-outline-primary btn-sm" onclick="viewLogDetails('${log.id}')" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function filterLogs() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const actionFilter = document.getElementById('actionFilter').value;
+    const resourceFilter = document.getElementById('resourceFilter').value;
+    const dateFilter = document.getElementById('dateFilter').value;
+    
+    filteredLogs = logs.filter(log => {
+        // Search term filter
+        if (searchTerm && !(
+            log.action.toLowerCase().includes(searchTerm) ||
+            (log.details && log.details.toLowerCase().includes(searchTerm)) ||
+            (log.ip_address && log.ip_address.includes(searchTerm))
+        )) {
+            return false;
+        }
+        
+        // Action filter
+        if (actionFilter && log.action !== actionFilter) {
+            return false;
+        }
+        
+        // Resource filter
+        if (resourceFilter && log.resource_type !== resourceFilter) {
+            return false;
+        }
+        
+        // Date filter
+        if (dateFilter) {
+            const logDate = new Date(log.created_at).toISOString().split('T')[0];
+            if (logDate !== dateFilter) {
+                return false;
+            }
+        }
+        
+        return true;
+    });
+    
+    displayLogs(filteredLogs);
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('actionFilter').value = '';
+    document.getElementById('resourceFilter').value = '';
+    document.getElementById('dateFilter').value = '';
+    
+    filteredLogs = logs;
+    displayLogs(filteredLogs);
+}
+
+function viewLogDetails(logId) {
+    const log = logs.find(l => l.id === logId);
+    if (!log) return;
+    
+    currentSelectedLog = log;
+    
+    // Display log details
+    const detailsHtml = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Basic Information</h6>
+                <table class="table table-sm">
+                    <tr><th>Log ID:</th><td>${log.id}</td></tr>
+                    <tr><th>Timestamp:</th><td>${new Date(log.created_at).toLocaleString()}</td></tr>
+                    <tr><th>Action:</th><td>${log.action}</td></tr>
+                    <tr><th>User ID:</th><td>${log.user_id || 'System'}</td></tr>
+                    <tr><th>IP Address:</th><td><code>${log.ip_address || 'unknown'}</code></td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Resource Information</h6>
+                <table class="table table-sm">
+                    <tr><th>Resource Type:</th><td>${log.resource_type || '-'}</td></tr>
+                    <tr><th>Resource ID:</th><td>${log.resource_id || '-'}</td></tr>
+                    <tr><th>Details:</th><td class="text-break">${log.details || '-'}</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Raw Log Data (JSON)</h6>
+                <pre class="bg-light p-3 rounded"><code>${JSON.stringify(log, null, 2)}</code></pre>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('logDetailsContent').innerHTML = detailsHtml;
+    new bootstrap.Modal(document.getElementById('logDetailsModal')).show();
+}
+
+function flagLogEntry() {
+    if (currentSelectedLog) {
+        VulnLib.notifications.success(`Log entry ${currentSelectedLog.id} flagged as important!`);
+        bootstrap.Modal.getInstance(document.getElementById('logDetailsModal')).hide();
+    }
+}
+
+function loadMoreLogs() {
+    VulnLib.notifications.info('Load more functionality would fetch older logs from server');
+    document.getElementById('loadMoreBtn').style.display = 'none';
+}
+
+function exportLogs(format) {
+    const exportData = filteredLogs.map(log => ({
+        timestamp: log.created_at,
+        user_id: log.user_id,
+        action: log.action,
+        resource_type: log.resource_type,
+        resource_id: log.resource_id,
+        ip_address: log.ip_address,
+        details: log.details
+    }));
+    
+    let content, filename, mimeType;
+    
+    if (format === 'csv') {
+        // VULN: CSV Injection - malicious log entries could execute in Excel
+        const headers = Object.keys(exportData[0]);
+        const csvContent = [
+            headers.join(','),
+            ...exportData.map(log => 
+                headers.map(header => {
+                    let value = log[header] || '';
+                    // VULN: No CSV injection protection
+                    if (typeof value === 'string') {
+                        value = value.replace(/"/g, '""'); // Basic escape
+                        if (value.includes(',') || value.includes('\n')) {
+                            value = `"${value}"`;
+                        }
+                    }
+                    return value;
+                }).join(',')
+            )
+        ].join('\n');
+        
+        content = csvContent;
+        filename = 'audit_logs.csv';
+        mimeType = 'text/csv';
+    } else if (format === 'txt') {
+        content = exportData.map(log => 
+            `[${log.timestamp}] ${log.user_id || 'SYSTEM'} ${log.action} ${log.resource_type || ''} ${log.resource_id || ''} from ${log.ip_address} - ${log.details || ''}`
+        ).join('\n');
+        filename = 'audit_logs.txt';
+        mimeType = 'text/plain';
+    } else {
+        content = JSON.stringify(exportData, null, 2);
+        filename = 'audit_logs.json';
+        mimeType = 'application/json';
+    }
+    
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    VulnLib.notifications.success(`Logs exported to ${filename}!`);
+    
+    if (format === 'csv') {
+        VulnLib.notifications.warning('CSV export may contain injection vulnerabilities when opened in Excel!');
+    }
+}
+
+function injectTestLog() {
+    // Simulate creating a log entry with XSS payload
+    const xssPayload = '<script>alert("XSS in logs!")</script>';
+    
+    // This would normally be done server-side, but for demo we'll add it locally
+    const testLog = {
+        id: 'test-' + Date.now(),
+        user_id: '{{ user.id }}',
+        action: 'security_event',
+        resource_type: 'system',
+        resource_id: 'test',
+        ip_address: '127.0.0.1',
+        details: `Test log entry with XSS payload: ${xssPayload}`,
+        created_at: new Date().toISOString()
+    };
+    
+    logs.unshift(testLog);
+    filteredLogs = logs;
+    displayLogs(filteredLogs);
+    updateStats();
+    
+    VulnLib.notifications.warning('XSS payload injected into logs! Check the details column.');
+}
+
+function simulateAttack() {
+    const attackLogs = [
+        {
+            id: 'attack-1-' + Date.now(),
+            user_id: 'attacker',
+            action: 'security_event',
+            resource_type: 'system',
+            ip_address: '192.168.1.100',
+            details: 'Multiple failed login attempts detected',
+            created_at: new Date(Date.now() - 5000).toISOString()
+        },
+        {
+            id: 'attack-2-' + Date.now(),
+            user_id: 'attacker',
+            action: 'security_event',
+            resource_type: 'api',
+            ip_address: '192.168.1.100',
+            details: 'SQL injection attempt in /api/reports/loans?month=1\' OR 1=1--',
+            created_at: new Date(Date.now() - 3000).toISOString()
+        },
+        {
+            id: 'attack-3-' + Date.now(),
+            user_id: null,
+            action: 'security_event',
+            resource_type: 'system',
+            ip_address: '192.168.1.100',
+            details: 'IDOR attack: Accessing /api/users/other-user-id/loans',
+            created_at: new Date().toISOString()
+        }
+    ];
+    
+    logs = [...attackLogs, ...logs];
+    filteredLogs = logs;
+    displayLogs(filteredLogs);
+    updateStats();
+    
+    VulnLib.notifications.error('Security attack simulation complete! Check the logs for malicious activity.');
+}
+</script>
+{% endblock %}

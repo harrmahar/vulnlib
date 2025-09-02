@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+
+{% block title %}My Fines - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="bi bi-currency-dollar"></i> My Fines
+        </h2>
+        <p class="text-muted">Manage your outstanding library fines</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+                <h5 class="card-title mb-0">Total Outstanding</h5>
+                <h3 id="totalOutstanding">$0.00</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fine Summary Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Unpaid Fines</h6>
+                        <h3 id="unpaidCount">-</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Paid Fines</h6>
+                        <h3 id="paidCount">-</h3>
+                    </div>
+                    <i class="bi bi-check-circle display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Unpaid Amount</h6>
+                        <h3 id="unpaidAmount">$0</h3>
+                    </div>
+                    <i class="bi bi-currency-dollar display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Total Paid</h6>
+                        <h3 id="totalPaid">$0</h3>
+                    </div>
+                    <i class="bi bi-cash display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs for different fine statuses -->
+<ul class="nav nav-tabs" id="fineTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="unpaid-tab" data-bs-toggle="tab" data-bs-target="#unpaid" 
+                type="button" role="tab" aria-controls="unpaid" aria-selected="true">
+            <i class="bi bi-exclamation-triangle"></i> Unpaid Fines
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="paid-tab" data-bs-toggle="tab" data-bs-target="#paid" 
+                type="button" role="tab" aria-controls="paid" aria-selected="false">
+            <i class="bi bi-check-circle"></i> Payment History
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="fineTabContent">
+    <!-- Unpaid Fines -->
+    <div class="tab-pane fade show active" id="unpaid" role="tabpanel" aria-labelledby="unpaid-tab">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Outstanding Fines</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="unpaidFines">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="visually-hidden">Loading fines...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Paid Fines -->
+    <div class="tab-pane fade" id="paid" role="tabpanel" aria-labelledby="paid-tab">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Payment History</h5>
+            </div>
+            <div class="card-body">
+                <div id="paidFines">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading payment history...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel">Pay Fine</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="paymentForm">
+                <div class="modal-body">
+                    <input type="hidden" id="paymentFineId" name="fine_id">
+                    
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Fine Amount:</strong><br>
+                                <span id="originalAmount" class="h4 text-primary">$0.00</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Reason:</strong><br>
+                                <span id="fineReason" class="text-muted">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="paymentAmount" class="form-label">Payment Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="text" class="form-control" id="paymentAmount" name="amount" readonly required>
+                        </div>
+                    </div>                    
+		    <div class="mb-3">
+                        <label for="paymentMethod" class="form-label">Payment Method</label>
+                        <select class="form-select" id="paymentMethod" name="payment_method">
+                            <option value="cash">Cash</option>
+                            <option value="card">Credit/Debit Card</option>
+                            <option value="check">Check</option>
+                            <option value="online">Online Payment</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="paymentNotes" class="form-label">Payment Notes</label>
+                        <textarea class="form-control" id="paymentNotes" name="notes" rows="2" 
+                                placeholder="Any notes about this payment..."></textarea>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <small>
+                            <strong>Test Examples:</strong><br>
+                            • Pay $0.01 to clear any fine amount<br>
+                            • Pay negative amounts to get credit<br>
+                            • Pay excessive amounts to test system limits
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Process Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const userId = '{{ user.id }}';
+let fines = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadMyFines();
+    
+    // Tab change handlers
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (event) {
+            const tabId = event.target.getAttribute('aria-controls');
+            if (tabId === 'paid') {
+                displayPaidFines();
+            } else {
+                displayUnpaidFines();
+            }
+        });
+    });
+    
+    // Payment form handler
+    document.getElementById('paymentForm').addEventListener('submit', handlePayment);
+});
+
+function loadMyFines() {
+    fetch(`/api/users/${userId}/fines`)
+        .then(response => response.json())
+        .then(data => {
+            fines = data.fines || [];
+            updateStats();
+            displayUnpaidFines();
+        })
+        .catch(error => {
+            console.error('Error loading fines:', error);
+            VulnLib.notifications.error('Error loading your fines');
+        });
+}
+
+function updateStats() {
+    const unpaid = fines.filter(fine => fine.status === 'unpaid');
+    const paid = fines.filter(fine => fine.status === 'paid');
+    
+    const unpaidAmount = unpaid.reduce((sum, fine) => sum + fine.amount, 0);
+    const paidAmount = paid.reduce((sum, fine) => sum + fine.amount, 0);
+    
+    document.getElementById('unpaidCount').textContent = unpaid.length;
+    document.getElementById('paidCount').textContent = paid.length;
+    document.getElementById('unpaidAmount').textContent = `$${unpaidAmount.toFixed(2)}`;
+    document.getElementById('totalPaid').textContent = `$${paidAmount.toFixed(2)}`;
+    document.getElementById('totalOutstanding').textContent = `$${unpaidAmount.toFixed(2)}`;
+}
+
+function displayUnpaidFines() {
+    const container = document.getElementById('unpaidFines');
+    const unpaidFines = fines.filter(fine => fine.status === 'unpaid');
+    
+    if (unpaidFines.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-check-circle display-4 text-success"></i>
+                <h4 class="mt-3 text-success">No outstanding fines!</h4>
+                <p class="text-muted">You don't have any unpaid fines. Keep it up!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Reason</th>
+                <th>Amount</th>
+                <th>Created Date</th>
+                <th>Days Outstanding</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${unpaidFines.map(fine => {
+                const createdDate = new Date(fine.created_at);
+                const daysOutstanding = Math.ceil((new Date() - createdDate) / (1000 * 60 * 60 * 24));
+                
+                return `
+                    <tr class="${daysOutstanding > 30 ? 'table-danger' : (daysOutstanding > 7 ? 'table-warning' : '')}">
+                        <td>
+                            <div>
+                                <strong>${fine.reason}</strong>
+                                ${fine.loan_id ? `<br><small class="text-muted">Loan ID: ${fine.loan_id}</small>` : ''}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="h5 text-danger">$${fine.amount.toFixed(2)}</span>
+                        </td>
+                        <td>${createdDate.toLocaleDateString()}</td>
+                        <td>
+                            <span class="badge ${daysOutstanding > 30 ? 'bg-danger' : (daysOutstanding > 7 ? 'bg-warning' : 'bg-info')}">
+                                ${daysOutstanding} days
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-success" onclick="payFine('${fine.id}', ${fine.amount}, '${fine.reason}')" title="Pay Fine">
+                                    <i class="bi bi-credit-card"></i> Pay Now
+                                </button>
+                                <button class="btn btn-outline-info" onclick="viewFineDetails('${fine.id}')" title="View Details">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function displayPaidFines() {
+    const container = document.getElementById('paidFines');
+    const paidFines = fines.filter(fine => fine.status === 'paid');
+    
+    if (paidFines.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-receipt display-4 text-muted"></i>
+                <h4 class="mt-3 text-muted">No payment history</h4>
+                <p class="text-muted">You haven't paid any fines yet</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover table-sm';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Reason</th>
+                <th>Amount</th>
+                <th>Paid Date</th>
+                <th>Payment Period</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${paidFines.map(fine => {
+                const createdDate = new Date(fine.created_at);
+                const paidDate = new Date(fine.paid_at);
+                const paymentDays = Math.ceil((paidDate - createdDate) / (1000 * 60 * 60 * 24));
+                
+                return `
+                    <tr>
+                        <td>${fine.reason}</td>
+                        <td>$${fine.amount.toFixed(2)}</td>
+                        <td>${paidDate.toLocaleDateString()}</td>
+                        <td>
+                            <span class="badge bg-success">
+                                Paid after ${paymentDays} days
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function payFine(fineId, amount, reason) {
+    document.getElementById('paymentFineId').value = fineId;
+    document.getElementById('originalAmount').textContent = `$${amount.toFixed(2)}`;
+    document.getElementById('fineReason').textContent = reason;
+    document.getElementById('paymentAmount').value = amount.toFixed(2);
+    
+    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+}
+
+function handlePayment(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const paymentData = {
+        fine_id: formData.get('fine_id'),
+        amount: parseFloat(formData.get('amount')),
+        payment_method: formData.get('payment_method'),
+        notes: formData.get('notes')
+    };
+    
+    // VULN: Client can manipulate payment amount
+    fetch(`/api/users/${userId}/fines/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const amount = paymentData.amount;
+            if (amount <= 0) {
+                VulnLib.notifications.success(`Payment of $${amount.toFixed(2)} processed!`);
+            } else if (amount < 1) {
+                VulnLib.notifications.success(`Paid only $${amount.toFixed(2)} to clear fine!`);
+            } else {
+                VulnLib.notifications.success('Payment processed successfully!');
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+            loadMyFines(); // Refresh data
+        } else {
+            VulnLib.notifications.error(data.message || 'Error processing payment');
+        }
+    })
+    .catch(error => {
+        console.error('Error processing payment:', error);
+        VulnLib.notifications.error('Error processing payment');
+    });
+}
+
+function viewFineDetails(fineId) {
+    const fine = fines.find(f => f.id === fineId);
+    if (!fine) return;
+    
+    const details = `
+        Fine ID: ${fine.id}
+        Amount: $${fine.amount.toFixed(2)}
+        Reason: ${fine.reason}
+        Created: ${new Date(fine.created_at).toLocaleDateString()}
+        Status: ${fine.status}
+        ${fine.loan_id ? `Loan ID: ${fine.loan_id}` : ''}
+    `;
+    
+    alert(details);
+}
+
+// Demonstration functions for testing business logic flaws
+function testNegativePayment() {
+    // This could be called from browser console to test negative payment
+    const testPayment = {
+        fine_id: 'test-fine-id',
+        amount: -10.00,
+        payment_method: 'test',
+        notes: 'Testing negative payment'
+    };
+    
+    fetch(`/api/users/${userId}/fines/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testPayment)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Negative payment test result:', data);
+    })
+    .catch(error => {
+        console.error('Test error:', error);
+    });
+}
+
+function testMinimalPayment() {
+    // Test paying $0.01 to clear any fine
+    const testPayment = {
+        fine_id: 'test-fine-id',
+        amount: 0.01,
+        payment_method: 'test',
+        notes: 'Testing minimal payment'
+    };
+    
+    fetch(`/api/users/${userId}/fines/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testPayment)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Minimal payment test result:', data);
+    })
+    .catch(error => {
+        console.error('Test error:', error);
+    });
+}
+</script>
+{% endblock %}

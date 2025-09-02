@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VulnLib - Library Management System{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+                <i class="bi bi-book me-2"></i>
+                VulnLib
+            </a>
+            
+            <!-- Search Form -->
+            <form class="d-flex mx-auto" style="width: 40%;" method="GET" action="{{ url_for('search') }}">
+                <div class="input-group">
+                    <input class="form-control" type="search" name="q" placeholder="Search books..." 
+                           value="{{ request.args.get('q', '') }}">
+                    <button class="btn btn-outline-light" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i>
+                                {{ current_user.username }}
+                                <span class="badge bg-secondary ms-1">{{ current_user.role }}</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/profile">
+                                    <i class="bi bi-person"></i> Profile
+                                </a></li>
+                                {% if current_user.role == 'member' %}
+                                <li><a class="dropdown-item" href="/my-loans">
+                                    <i class="bi bi-journal"></i> My Loans
+                                </a></li>
+                                <li><a class="dropdown-item" href="/my-wishlist">
+                                    <i class="bi bi-heart"></i> Wishlist
+                                </a></li>
+                                <li><a class="dropdown-item" href="/my-fines">
+                                    <i class="bi bi-currency-dollar"></i> Fines
+                                </a></li>
+                                {% elif current_user.role == 'librarian' %}
+                                <li><a class="dropdown-item" href="/librarian/dashboard">
+                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                </a></li>
+                                <li><a class="dropdown-item" href="/librarian/books">
+                                    <i class="bi bi-book"></i> Manage Books
+                                </a></li>
+                                <li><a class="dropdown-item" href="/librarian/loans">
+                                    <i class="bi bi-journal-check"></i> Manage Loans
+                                </a></li>
+                                {% elif current_user.role == 'admin' %}
+                                <li><a class="dropdown-item" href="/admin/dashboard">
+                                    <i class="bi bi-gear"></i> Admin Panel
+                                </a></li>
+                                <li><a class="dropdown-item" href="/admin/users">
+                                    <i class="bi bi-people"></i> Users
+                                </a></li>
+                                <li><a class="dropdown-item" href="/admin/logs">
+                                    <i class="bi bi-file-text"></i> Audit Logs
+                                </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">
+                                <i class="bi bi-person-plus"></i> Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                <strong class="me-auto">Success</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="successMessage"></div>
+        </div>
+        
+        <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+                <strong class="me-auto">Error</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="errorMessage"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">
+                &copy; 2025 VulnLib - Vulnerable Library Management System
+                <br>
+                <small>Built with Love by Harrmahar & Claude.ai</small>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

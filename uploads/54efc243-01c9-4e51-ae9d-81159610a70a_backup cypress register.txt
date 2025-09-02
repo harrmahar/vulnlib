@@ -1,0 +1,29 @@
+Email : hanggarwahyu24@gmail.com
+password : gTbb8wzMM3pQWKW#
+
+it.treetan@gmail.com
+
+td[class='py-8'] span
+td[class='py-8'] span
+
+
+it("Test Daftar", () => {
+    //const inboxId = this.inboxId;
+    cy.visit("https://treetan.com/");
+    cy.get(
+      "button[class='inline-flex items-center justify-center gap-[10px] flex-shrink-0 rounded-md transition duration-300 ease-in-out w-full bg-green-1 active:bg-green-2 active:scale-95 h-10 px-4 py-2 body-2-bold text-white']"
+    ).click();
+    //cy.Register();
+    RegistrasionFill.fillName();
+    RegistrasionFill.fillphone();
+    RegistrasionFill.fillEmail();
+    RegistrasionFill.fillPassword();
+    cy.get(
+      "label[class='lg:block md:block hidden'] button[class='block w-full px-4 py-3 text-white rounded-md bg-[#5BCCD4]']"
+    ).click();
+
+    //automateOtp.extractotp(RegistrasionFill.inboxId);
+    //pagesOtp.submit();
+    //cy.wait(20000);
+    //const the = new automateOtp();
+  });

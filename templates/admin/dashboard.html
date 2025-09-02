@@ -1,0 +1,702 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="bi bi-gear"></i> Admin Dashboard
+        </h2>
+        <p class="text-muted">System administration and management</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="dropdown">
+            <button class="btn btn-danger dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-shield-exclamation"></i> Dangerous Actions
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="cleanDatabase()">
+                    <i class="bi bi-trash"></i> Clean Database
+                </a></li>
+                <li><a class="dropdown-item" href="#" onclick="resetSystem()">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset System
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="simulateBreach()">
+                    <i class="bi bi-bug"></i> Simulate Security Breach
+                </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- System Stats Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Total Users</h6>
+                        <h3 id="totalUsers">-</h3>
+                    </div>
+                    <i class="bi bi-people display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Total Books</h6>
+                        <h3 id="totalBooks">-</h3>
+                    </div>
+                    <i class="bi bi-book display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Active Loans</h6>
+                        <h3 id="activeLoans">-</h3>
+                    </div>
+                    <i class="bi bi-journal-check display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>System Health</h6>
+                        <h3 class="text-danger">VULN</h3>
+                    </div>
+                    <i class="bi bi-shield-x display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2 mb-3">
+                        <a href="/admin/users" class="btn btn-primary w-100 h-100 d-flex flex-column justify-content-center">
+                            <i class="bi bi-people display-6"></i>
+                            <span class="mt-2">Manage Users</span>
+                        </a>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <a href="/admin/logs" class="btn btn-info w-100 h-100 d-flex flex-column justify-content-center">
+                            <i class="bi bi-file-text display-6"></i>
+                            <span class="mt-2">View Logs</span>
+                        </a>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <button class="btn btn-warning w-100 h-100 d-flex flex-column justify-content-center" 
+                                data-bs-toggle="modal" data-bs-target="#systemConfigModal">
+                            <i class="bi bi-gear display-6"></i>
+                            <span class="mt-2">System Config</span>
+                        </button>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <button class="btn btn-secondary w-100 h-100 d-flex flex-column justify-content-center" 
+                                onclick="generateReport()">
+                            <i class="bi bi-graph-up display-6"></i>
+                            <span class="mt-2">Generate Report</span>
+                        </button>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <button class="btn btn-success w-100 h-100 d-flex flex-column justify-content-center" 
+                                data-bs-toggle="modal" data-bs-target="#backupModal">
+                            <i class="bi bi-download display-6"></i>
+                            <span class="mt-2">Backup System</span>
+                        </button>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <button class="btn btn-danger w-100 h-100 d-flex flex-column justify-content-center" 
+                                onclick="cleanDatabase()">
+                            <i class="bi bi-arrow-clockwise display-6"></i>
+                            <span class="mt-2">Reset Database</span>
+                        </button>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <button class="btn btn-info w-100 h-100 d-flex flex-column justify-content-center" 
+                                data-bs-toggle="modal" data-bs-target="#schedulerModal">
+                            <i class="bi bi-clock display-6"></i>
+                            <span class="mt-2">DB Scheduler</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity and System Status -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-activity"></i> Recent System Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="recentActivity">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-shield-x"></i> Security Alerts
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger mb-2">
+                    <small><strong>Critical:</strong> Multiple failed login attempts detected</small>
+                </div>
+                <div class="alert alert-warning mb-2">
+                    <small><strong>Warning:</strong> Unusual API access patterns</small>
+                </div>
+                <div class="alert alert-info mb-2">
+                    <small><strong>Info:</strong> New user registrations spike</small>
+                </div>
+                <div class="alert alert-danger mb-0">
+                    <small><strong>Critical:</strong> XSS payloads in user content</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-cpu"></i> System Resources
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <small class="text-muted">CPU Usage</small>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: 45%"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">Memory</small>
+                    <div class="progress">
+                        <div class="progress-bar bg-warning" style="width: 75%"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">Disk Space</small>
+                    <div class="progress">
+                        <div class="progress-bar bg-danger" style="width: 90%"></div>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <small class="text-muted">Security Score</small>
+                    <div class="progress">
+                        <div class="progress-bar bg-danger" style="width: 15%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Config Modal -->
+<div class="modal fade" id="systemConfigModal" tabindex="-1" aria-labelledby="systemConfigModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="systemConfigModalLabel">System Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="systemConfigForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <small><strong>Warning:</strong> These fields may contain XSS vulnerabilities for educational purposes</small>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="libraryName" class="form-label">Library Name</label>
+                                <input type="text" class="form-control" id="libraryName" name="library_name" 
+                                       value="VulnLib Education Center">
+                            </div>
+                            <div class="mb-3">
+                                <label for="finePerDay" class="form-label">Fine Per Day ($)</label>
+                                <input type="number" class="form-control" id="finePerDay" name="fine_per_day" 
+                                       value="1.00" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label for="maxLoanDays" class="form-label">Max Loan Days</label>
+                                <input type="number" class="form-control" id="maxLoanDays" name="max_loan_days" 
+                                       value="14" min="1" max="365">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="adminEmail" class="form-label">Admin Email</label>
+                                <input type="email" class="form-control" id="adminEmail" name="admin_email" 
+                                       value="admin@vulnlib.edu">
+                            </div>
+                            <div class="mb-3">
+                                <label for="systemUrl" class="form-label">System URL</label>
+                                <input type="url" class="form-control" id="systemUrl" name="system_url" 
+                                       placeholder="https://api.internal.system/config">
+                            </div>
+                            <div class="mb-3">
+                                <label for="debugMode" class="form-label">Debug Mode</label>
+                                <select class="form-select" id="debugMode" name="debug_mode">
+                                    <option value="true" selected>Enabled</option>
+                                    <option value="false">Disabled</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="emailTemplate" class="form-label">Email Template</label>
+                                <textarea class="form-control" id="emailTemplate" name="email_template" rows="4" 
+                                        placeholder="Dear {username}, your book is overdue...">Dear {username}, your book <script>alert("XSS")</script> is overdue.</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Backup Modal -->
+<div class="modal fade" id="backupModal" tabindex="-1" aria-labelledby="backupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="backupModalLabel">System Backup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="backupType" class="form-label">Backup Type</label>
+                    <select class="form-select" id="backupType">
+                        <option value="full">Full System Backup</option>
+                        <option value="database">Database Only</option>
+                        <option value="config">Configuration Only</option>
+                        <option value="logs">Logs Only</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="backupFormat" class="form-label">Export Format</label>
+                    <select class="form-select" id="backupFormat">
+                        <option value="json">JSON</option>
+                        <option value="csv">CSV</option>
+                        <option value="xml">XML</option>
+                        <option value="sql">SQL Dump</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="includePasswords">
+                        <label class="form-check-label" for="includePasswords">
+                            Include password hashes (Security Risk)
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="generateBackup()">Generate Backup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database Scheduler Modal -->
+<div class="modal fade" id="schedulerModal" tabindex="-1" aria-labelledby="schedulerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="schedulerModalLabel">Database Cleanup Scheduler</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="schedulerStatus" class="mb-3">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="schedulerControls" class="d-none">
+                    <div class="mb-3">
+                        <label for="cleanupInterval" class="form-label">Cleanup Interval (Hours)</label>
+                        <input type="number" class="form-control" id="cleanupInterval" min="1" max="168" placeholder="24">
+                        <div class="form-text">Enter hours between 1 and 168 (1 week)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Info:</strong> Database cleanup will reset all data and repopulate with fresh demo data including users, books, and sample transactions.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="enableSchedulerBtn" onclick="enableScheduler()">Enable Scheduler</button>
+                <button type="button" class="btn btn-warning" id="disableSchedulerBtn" onclick="disableScheduler()" style="display: none;">Disable Scheduler</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is actually admin (client-side check - easily bypassable)
+    if ('{{ user.role }}' !== 'admin') {
+        // VULN: Weak client-side access control
+        document.querySelector('.alert-warning').innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi bi-shield-x me-2"></i>
+                <div>
+                    <strong>Access Control Bypass!</strong>
+                    You are accessing admin functionality as a '{{ user.role }}' user. This demonstrates broken access control.
+                </div>
+            </div>
+        `;
+    }
+    
+    loadDashboardData();
+    
+    // Form handlers
+    document.getElementById('systemConfigForm').addEventListener('submit', handleSystemConfig);
+});
+
+function loadDashboardData() {
+    // Load system statistics
+    loadSystemStats();
+    loadRecentActivity();
+}
+
+function loadSystemStats() {
+    // Load users count
+    fetch('/api/admin/users')
+        .then(response => response.json())
+        .then(data => {
+            if (data.users) {
+                document.getElementById('totalUsers').textContent = data.users.length;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading users:', error);
+            document.getElementById('totalUsers').textContent = 'Error';
+        });
+    
+    // Load books count
+    fetch('/api/books')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalBooks').textContent = data.total || 0;
+        })
+        .catch(error => {
+            console.error('Error loading books:', error);
+        });
+    
+    // Load active loans (simulate)
+    document.getElementById('activeLoans').textContent = Math.floor(Math.random() * 50) + 10;
+}
+
+function loadRecentActivity() {
+    fetch('/api/admin/logs')
+        .then(response => response.json())
+        .then(data => {
+            displayRecentActivity(data.logs || []);
+        })
+        .catch(error => {
+            console.error('Error loading logs:', error);
+            document.getElementById('recentActivity').innerHTML = 
+                '<p class="text-danger">Error loading system activity</p>';
+        });
+}
+
+function displayRecentActivity(logs) {
+    const container = document.getElementById('recentActivity');
+    
+    if (logs.length === 0) {
+        container.innerHTML = '<p class="text-muted">No recent activity</p>';
+        return;
+    }
+    
+    const activityHtml = logs.slice(0, 10).map(log => {
+        const actionIcons = {
+            'login': 'box-arrow-in-right text-success',
+            'logout': 'box-arrow-left text-muted',
+            'create_book': 'book text-primary',
+            'create_user': 'person-plus text-info',
+            'import_books': 'upload text-warning'
+        };
+        
+        const iconClass = actionIcons[log.action] || 'circle text-secondary';
+        
+        return `
+            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                <div class="me-3">
+                    <i class="bi bi-${iconClass}"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">${log.action.replace('_', ' ').toUpperCase()}</div>
+                    <div class="text-muted small">
+                        ${log.details || `${log.resource_type || 'System'} action performed`}
+                    </div>
+                    <small class="text-muted">
+                        ${new Date(log.created_at).toLocaleString()} - IP: ${log.ip_address}
+                    </small>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = activityHtml;
+}
+
+function handleSystemConfig(e) {
+    e.preventDefault();
+    
+    VulnLib.notifications.info('System configuration saved (demo - not actually saved)');
+    bootstrap.Modal.getInstance(document.getElementById('systemConfigModal')).hide();
+}
+
+function cleanDatabase() {
+    if (confirm('🗑️ This will reset the database and repopulate with fresh demo data. Continue?')) {
+        fetch('/api/admin/db/clean', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                VulnLib.notifications.success('Database reset and repopulated with demo data!');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                VulnLib.notifications.error(data.message || 'Error cleaning database');
+            }
+        })
+        .catch(error => {
+            console.error('Error cleaning database:', error);
+            VulnLib.notifications.error('Error cleaning database');
+        });
+    }
+}
+
+function resetSystem() {
+    if (confirm('This will reset the entire system to default state. Continue?')) {
+        VulnLib.notifications.info('System reset initiated... (demo functionality)');
+    }
+}
+
+function simulateBreach() {
+    VulnLib.notifications.warning('Security breach simulation started! Check logs for malicious activity.');
+    
+    // Simulate some malicious activity in logs
+    setTimeout(() => {
+        VulnLib.notifications.error('ALERT: Unauthorized admin access detected!');
+    }, 2000);
+    
+    setTimeout(() => {
+        VulnLib.notifications.error('ALERT: Data exfiltration attempt blocked!');
+    }, 4000);
+}
+
+function generateReport() {
+    const reportData = {
+        users: document.getElementById('totalUsers').textContent,
+        books: document.getElementById('totalBooks').textContent,
+        loans: document.getElementById('activeLoans').textContent,
+        timestamp: new Date().toISOString(),
+        vulnerabilities: [
+            'Broken Access Control',
+            'XSS in multiple endpoints',
+            'IDOR in user data',
+            'SQL Injection in reports',
+            'Business logic flaws',
+            'File upload vulnerabilities',
+            'SSRF in external URLs'
+        ]
+    };
+    
+    const reportJson = JSON.stringify(reportData, null, 2);
+    const blob = new Blob([reportJson], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vulnlib_security_report.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    VulnLib.notifications.success('Security report generated and downloaded!');
+}
+
+function generateBackup() {
+    const backupType = document.getElementById('backupType').value;
+    const backupFormat = document.getElementById('backupFormat').value;
+    const includePasswords = document.getElementById('includePasswords').checked;
+    
+    // Simulate backup generation
+    VulnLib.notifications.info(`Generating ${backupType} backup in ${backupFormat} format...`);
+    
+    setTimeout(() => {
+        if (backupFormat === 'csv' && includePasswords) {
+            VulnLib.notifications.success('CSV backup with passwords generated!');
+        } else {
+            VulnLib.notifications.success('Backup generated successfully!');
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('backupModal')).hide();
+    }, 2000);
+}
+
+// Scheduler functionality
+document.getElementById('schedulerModal').addEventListener('show.bs.modal', function () {
+    loadSchedulerStatus();
+});
+
+function loadSchedulerStatus() {
+    fetch('/api/admin/scheduler/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const statusDiv = document.getElementById('schedulerStatus');
+                const controlsDiv = document.getElementById('schedulerControls');
+                const enableBtn = document.getElementById('enableSchedulerBtn');
+                const disableBtn = document.getElementById('disableSchedulerBtn');
+                
+                if (data.scheduler_enabled === 'disabled') {
+                    statusDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Status:</strong> Scheduler is currently disabled
+                        </div>
+                    `;
+                    enableBtn.style.display = 'inline-block';
+                    disableBtn.style.display = 'none';
+                    document.getElementById('cleanupInterval').value = '24';
+                } else {
+                    statusDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="bi bi-clock"></i>
+                            <strong>Status:</strong> Scheduler is active - cleanup every ${data.scheduler_enabled} hours
+                        </div>
+                    `;
+                    enableBtn.style.display = 'none';
+                    disableBtn.style.display = 'inline-block';
+                    document.getElementById('cleanupInterval').value = data.scheduler_enabled;
+                }
+                
+                controlsDiv.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading scheduler status:', error);
+            document.getElementById('schedulerStatus').innerHTML = 
+                '<div class="alert alert-danger">Error loading scheduler status</div>';
+        });
+}
+
+function enableScheduler() {
+    const hours = document.getElementById('cleanupInterval').value;
+    
+    if (!hours || hours < 1 || hours > 168) {
+        VulnLib.notifications.error('Please enter a valid interval between 1 and 168 hours');
+        return;
+    }
+    
+    fetch('/api/admin/scheduler/configure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hours: parseInt(hours) })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success(data.message);
+            loadSchedulerStatus(); // Refresh status
+        } else {
+            VulnLib.notifications.error(data.message || 'Error configuring scheduler');
+        }
+    })
+    .catch(error => {
+        console.error('Error configuring scheduler:', error);
+        VulnLib.notifications.error('Error configuring scheduler');
+    });
+}
+
+function disableScheduler() {
+    if (confirm('Are you sure you want to disable the automatic database cleanup scheduler?')) {
+        fetch('/api/admin/scheduler/disable', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                VulnLib.notifications.success(data.message);
+                loadSchedulerStatus(); // Refresh status
+            } else {
+                VulnLib.notifications.error(data.message || 'Error disabling scheduler');
+            }
+        })
+        .catch(error => {
+            console.error('Error disabling scheduler:', error);
+            VulnLib.notifications.error('Error disabling scheduler');
+        });
+    }
+}
+</script>
+{% endblock %}

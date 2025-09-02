@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+
+{% block title %}My Loans - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="bi bi-journal"></i> My Loans
+        </h2>
+        <p class="text-muted">Manage your borrowed books and loan requests</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="/search" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Request New Loan
+        </a>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Pending</h6>
+                        <h3 id="pendingCount">-</h3>
+                    </div>
+                    <i class="bi bi-hourglass-split display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Active</h6>
+                        <h3 id="activeCount">-</h3>
+                    </div>
+                    <i class="bi bi-journal-check display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Overdue</h6>
+                        <h3 id="overdueCount">-</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>Returned</h6>
+                        <h3 id="returnedCount">-</h3>
+                    </div>
+                    <i class="bi bi-check-circle display-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs for different loan statuses -->
+<ul class="nav nav-tabs" id="loanTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="current-tab" data-bs-toggle="tab" data-bs-target="#current" 
+                type="button" role="tab" aria-controls="current" aria-selected="true">
+            <i class="bi bi-journal-check"></i> Current Loans
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" 
+                type="button" role="tab" aria-controls="pending" aria-selected="false">
+            <i class="bi bi-hourglass-split"></i> Pending Requests
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" 
+                type="button" role="tab" aria-controls="history" aria-selected="false">
+            <i class="bi bi-clock-history"></i> Loan History
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="loanTabContent">
+    <!-- Current Loans -->
+    <div class="tab-pane fade show active" id="current" role="tabpanel" aria-labelledby="current-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Active Loans</h5>
+            </div>
+            <div class="card-body">
+                <div id="currentLoans">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pending Requests -->
+    <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Pending Loan Requests</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="pendingLoans">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loan History -->
+    <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Loan History</h5>
+            </div>
+            <div class="card-body">
+                <div id="historyLoans">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Extend Loan Modal -->
+<div class="modal fade" id="extendModal" tabindex="-1" aria-labelledby="extendModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="extendModalLabel">Extend Loan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="extendForm">
+                <div class="modal-body">
+                    <input type="hidden" id="extendLoanId" name="loanId">
+                    <div class="mb-3">
+                        <label for="extendDays" class="form-label">Extension Days</label>
+                        <input type="number" class="form-control" id="extendDays" name="days" 
+                               min="1" max="365" value="7" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="extendReason" class="form-label">Reason (Optional)</label>
+                        <textarea class="form-control" id="extendReason" name="reason" rows="3" 
+                                placeholder="Why do you need to extend this loan?"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Extend Loan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const userId = '{{ user.id }}';
+let loans = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadMyLoans();
+    
+    // Tab change handlers
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (event) {
+            const tabId = event.target.getAttribute('aria-controls');
+            if (tabId === 'pending') {
+                displayPendingLoans();
+            } else if (tabId === 'history') {
+                displayHistoryLoans();
+            } else {
+                displayCurrentLoans();
+            }
+        });
+    });
+    
+    // Extend form handler
+    document.getElementById('extendForm').addEventListener('submit', handleExtendLoan);
+});
+
+function loadMyLoans() {
+    fetch(`/api/users/${userId}/loans`)
+        .then(response => response.json())
+        .then(data => {
+            loans = data.loans || [];
+            updateStats();
+            displayCurrentLoans();
+        })
+        .catch(error => {
+            console.error('Error loading loans:', error);
+            VulnLib.notifications.error('Error loading your loans');
+        });
+}
+
+function updateStats() {
+    const pending = loans.filter(loan => loan.status === 'pending').length;
+    const active = loans.filter(loan => loan.status === 'approved' && !loan.returned_at).length;
+    const returned = loans.filter(loan => loan.status === 'returned').length;
+    
+    // Calculate overdue
+    const today = new Date();
+    const overdue = loans.filter(loan => 
+        loan.status === 'approved' && 
+        !loan.returned_at && 
+        loan.due_date && 
+        new Date(loan.due_date) < today
+    ).length;
+    
+    document.getElementById('pendingCount').textContent = pending;
+    document.getElementById('activeCount').textContent = active;
+    document.getElementById('overdueCount').textContent = overdue;
+    document.getElementById('returnedCount').textContent = returned;
+}
+
+function displayCurrentLoans() {
+    const container = document.getElementById('currentLoans');
+    const currentLoans = loans.filter(loan => loan.status === 'approved' && !loan.returned_at);
+    
+    if (currentLoans.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-journal display-4 text-muted"></i>
+                <h5 class="mt-3 text-muted">No active loans</h5>
+                <p class="text-muted">You don't have any books currently borrowed</p>
+                <a href="/search" class="btn btn-primary">Browse Books</a>
+            </div>
+        `;
+        return;
+    }
+    
+    const today = new Date();
+    const table = document.createElement('table');
+    table.className = 'table table-hover';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Borrowed Date</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${currentLoans.map(loan => {
+                const dueDate = new Date(loan.due_date);
+                const isOverdue = dueDate < today;
+                const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                
+                return `
+                    <tr class="${isOverdue ? 'table-danger' : (daysUntilDue <= 3 ? 'table-warning' : '')}">
+                        <td>
+                            <div>
+                                <strong>${loan.book_title}</strong>
+                                <br><small class="text-muted">ID: ${loan.book_id}</small>
+                            </div>
+                        </td>
+                        <td>${loan.approved_at ? new Date(loan.approved_at).toLocaleDateString() : '-'}</td>
+                        <td>
+                            ${dueDate.toLocaleDateString()}
+                            ${isOverdue ? 
+                                `<br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Overdue by ${Math.abs(daysUntilDue)} days</small>` : 
+                                (daysUntilDue <= 3 ? `<br><small class="text-warning">Due in ${daysUntilDue} days</small>` : '')
+                            }
+                        </td>
+                        <td>
+                            <span class="badge ${isOverdue ? 'bg-danger' : 'bg-success'}">
+                                ${isOverdue ? 'Overdue' : 'Active'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="/books/${loan.book_id}" class="btn btn-outline-primary" title="View Book">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button class="btn btn-outline-warning" onclick="extendLoan('${loan.id}', '${loan.book_title}')" title="Extend Loan">
+                                    <i class="bi bi-calendar-plus"></i>
+                                </button>
+                                <button class="btn btn-outline-info" onclick="downloadSlip('${loan.id}')" title="Download Slip">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function displayPendingLoans() {
+    const container = document.getElementById('pendingLoans');
+    const pendingLoans = loans.filter(loan => loan.status === 'pending');
+    
+    if (pendingLoans.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-hourglass-split display-4 text-muted"></i>
+                <h5 class="mt-3 text-muted">No pending requests</h5>
+                <p class="text-muted">You don't have any pending loan requests</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Requested Date</th>
+                <th>Requested Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${pendingLoans.map(loan => `
+                <tr>
+                    <td>
+                        <div>
+                            <strong>${loan.book_title}</strong>
+                            <br><small class="text-muted">ID: ${loan.book_id}</small>
+                        </div>
+                    </td>
+                    <td>${new Date(loan.requested_at).toLocaleDateString()}</td>
+                    <td>${loan.due_date ? new Date(loan.due_date).toLocaleDateString() : '-'}</td>
+                    <td>
+                        <span class="badge bg-warning">Pending Approval</span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a href="/books/${loan.book_id}" class="btn btn-outline-primary" title="View Book">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <button class="btn btn-outline-danger" onclick="cancelLoan('${loan.id}')" title="Cancel Request">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function displayHistoryLoans() {
+    const container = document.getElementById('historyLoans');
+    const historyLoans = loans.filter(loan => loan.status === 'returned');
+    
+    if (historyLoans.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-clock-history display-4 text-muted"></i>
+                <h5 class="mt-3 text-muted">No loan history</h5>
+                <p class="text-muted">You haven't returned any books yet</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'table table-hover table-sm';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Borrowed</th>
+                <th>Returned</th>
+                <th>Duration</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${historyLoans.map(loan => {
+                const borrowedDate = new Date(loan.approved_at);
+                const returnedDate = new Date(loan.returned_at);
+                const duration = Math.ceil((returnedDate - borrowedDate) / (1000 * 60 * 60 * 24));
+                
+                return `
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>${loan.book_title}</strong>
+                            </div>
+                        </td>
+                        <td>${borrowedDate.toLocaleDateString()}</td>
+                        <td>${returnedDate.toLocaleDateString()}</td>
+                        <td>${duration} days</td>
+                        <td>
+                            <a href="/books/${loan.book_id}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
+    
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function extendLoan(loanId, bookTitle) {
+    document.getElementById('extendLoanId').value = loanId;
+    document.getElementById('extendModalLabel').textContent = `Extend: ${bookTitle}`;
+    new bootstrap.Modal(document.getElementById('extendModal')).show();
+}
+
+function handleExtendLoan(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const loanId = formData.get('loanId');
+    const days = parseInt(formData.get('days'));
+    const reason = formData.get('reason') || 'No reason provided';
+    
+    fetch(`/api/loans/${loanId}/extend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days, reason })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            VulnLib.notifications.success(`Loan extended by ${days} days!`);
+            bootstrap.Modal.getInstance(document.getElementById('extendModal')).hide();
+            loadMyLoans(); // Refresh data
+        } else {
+            VulnLib.notifications.error(data.message || 'Error extending loan');
+        }
+    })
+    .catch(error => {
+        console.error('Error extending loan:', error);
+        VulnLib.notifications.error('Error extending loan');
+    });
+}
+
+
+function cancelLoan(loanId) {
+    if (confirm('Are you sure you want to cancel this loan request?')) {
+        VulnLib.notifications.info('Cancel functionality not implemented in this demo');
+    }
+}
+
+function downloadSlip(loanId) {
+    // Open loan slip in new window
+    window.open(`/api/loans/${loanId}/slip`, '_blank');
+}
+</script>
+{% endblock %}

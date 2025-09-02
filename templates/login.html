@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Login - VulnLib{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-circle display-4 text-primary"></i>
+                    <h3 class="mt-2">Login to VulnLib</h3>
+                    <p class="text-muted">Access your library account</p>
+                </div>
+                
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   placeholder="Enter your username" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="Enter your password" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                <i class="bi bi-eye" id="passwordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">
+                            Remember me
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3" id="loginBtn">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </button>
+                </form>
+                
+                <div class="text-center">
+                    <p class="text-muted">Don't have an account?</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const loginData = {
+        username: formData.get('username'),
+        password: formData.get('password')
+    };
+    
+    const loginBtn = document.getElementById('loginBtn');
+    const originalText = loginBtn.innerHTML;
+    
+    loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Logging in...';
+    loginBtn.disabled = true;
+    
+    fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Login successful! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.href = data.redirect || '/';
+            }, 1000);
+        } else {
+            showToast(data.message || 'Login failed', 'error');
+            loginBtn.innerHTML = originalText;
+            loginBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error during login:', error);
+        showToast('Login failed. Please try again.', 'error');
+        loginBtn.innerHTML = originalText;
+        loginBtn.disabled = false;
+    });
+});
+
+function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const passwordIcon = document.getElementById('passwordIcon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        passwordIcon.className = 'bi bi-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        passwordIcon.className = 'bi bi-eye';
+    }
+}
+
+
+function showToast(message, type = 'success') {
+    const toastElement = type === 'success' ? 
+        document.getElementById('successToast') : 
+        document.getElementById('errorToast');
+    const messageElement = type === 'success' ? 
+        document.getElementById('successMessage') : 
+        document.getElementById('errorMessage');
+    
+    messageElement.textContent = message;
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+}
+</script>
+{% endblock %}
