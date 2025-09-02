@@ -1,4 +1,4 @@
-# 📖 Vulnerable Library Management System (Vulnlib)
+# 📖 Vulnerable Library Management System (VulnLib)
 
 Vulnlib is a **deliberately vulnerable web application** designed to simulate a real-world **Library Management System (LMS)**.  
 It is intended for **learning and practicing web penetration testing** in a safe and controlled environment.  
