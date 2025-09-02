@@ -4,12 +4,14 @@ Vulnlib is a **deliberately vulnerable web application** designed to simulate a 
 It is intended for **learning and practicing web penetration testing** in a safe and controlled environment.  
 The system mimics the features of a typical library application while intentionally containing various security flaws for training purposes.  
 
-> ⚠️ **Disclaimer**:  
-> This project is **for educational use only**. Do not deploy or expose Vulnlib to public/production environments.
+⚠️ **Warning!**  
+This project is **for educational use only**. Do not deploy or expose Vulnlib to public/production environments.
 
----
+<img width="1133" height="602" alt="image" src="https://github.com/user-attachments/assets/5da5f6c2-35da-40e3-b9d4-efc0c9348deb" />
 
-## 🔹 Features by Role Overview
+
+## Roles and Features
+There are 4 roles : Public, Member, Librarian, and Admin
 
 ### Public (No Authentication)
 - **Home & Book Search**: Search books by title, category, author, or year.  
@@ -21,7 +23,7 @@ The system mimics the features of a typical library application while intentiona
 - **Borrowing History**: View personal loan records.  
 - **Loan Requests**: Submit loan applications for books.  
 - **Loan Extensions**: Request extensions for active loans.  
-- **Fines Management**: View and pay outstanding fines.  
+- **Fines Management**: View and pay outstanding fines. (Under Development)
 - **Profile Update**: Edit personal information.  
 - **Wishlist**: Maintain a personal wishlist of books.  
 
@@ -35,11 +37,10 @@ The system mimics the features of a typical library application while intentiona
 ### Admin
 - **User Management**: Create, update, delete, and assign user roles.  
 - **Role & Permission Configuration**: Manage access rights for different roles.  
-- **Audit Logs**: Monitor system activity and user actions.  
+- **Audit Logs**: Monitor system activity and user actions.  (Under Development)
 - **System Configuration**: Adjust global settings such as fine rules and email templates.  
 - **Database Management**: Reset or re-seed the application database.  
 
----
 
 ## 🔹 Vulnerability Categories
 Vulnlib intentionally includes multiple categories of vulnerabilities for pentesting practice, such as:
@@ -57,7 +58,6 @@ Vulnlib intentionally includes multiple categories of vulnerabilities for pentes
 - **Grep Endpoint from app.js**
 - etc.
 
----
 
 ## 🔹 Installation (Docker Compose)
 
@@ -65,8 +65,43 @@ Ensure **Docker** and **Docker Compose** are installed.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/stefan/vulnlib.git
+   git clone https://github.com/harrmahar/vulnlib.git
    cd vulnlib
+   docker compose up -d
    ```
 
+2. Access Vunlib at `http://localhost:8000`
 
+## Still Not Working Features
+- Fines Features
+- File Upload (File Not Found)
+- Log (Admin Dashboard)
+- ....
+
+## 📖 Detailed Walkthrough
+
+Currently, there is no official walkthrough available for **VulnLib**.  
+If you would like to contribute by creating a walkthrough or write-up, feel free to reach out to me.  
+I would be more than happy to add your work here with proper credit. 🚀  
+
+
+## 📬 Contact
+If you want to collaborate, contribute, or ask something, you can reach me via:  
+- **LinkedIn**: [Harrmahar](https://www.linkedin.com/in/harrmahar)  
+
+
+## App Preview 
+<img width="574" height="300" alt="image" src="https://github.com/user-attachments/assets/f701bfb6-368a-4a7b-b638-fc2e2e4b3c7b" />
+
+<img width="574" height="300" alt="image" src="https://github.com/user-attachments/assets/ccb4bda7-5c63-4e38-be9d-9c79d1702200" />
+
+
+<img width="574" height="300" alt="image" src="https://github.com/user-attachments/assets/2dbc5f9f-ade9-47f8-aa5b-db3e35292b5e" />
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+
+
+
+<p align='center'><sub>Made for community - Harrmahar , Sept 2025</sub></p>
