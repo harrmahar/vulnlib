@@ -4,7 +4,7 @@ services:
   vulnlib-app:
     build: .
     ports:
-      - "80:5000"
+      - "8000:5000"
     volumes:
       - ./uploads:/app/uploads
       - ./instance:/app/instance
