@@ -42,7 +42,7 @@ There are 4 roles : Public, Member, Librarian, and Admin
 - **Database Management**: Reset or re-seed the application database.  
 
 
-## 🔹 Vulnerability Categories
+## Vulnerability Categories
 Vulnlib intentionally includes multiple categories of vulnerabilities for pentesting practice, such as:
 
 - **SQL Injection (SQLi)**  
@@ -59,7 +59,7 @@ Vulnlib intentionally includes multiple categories of vulnerabilities for pentes
 - etc.
 
 
-## 🔹 Installation (Docker Compose)
+## Installation (Docker Compose)
 
 Ensure **Docker** and **Docker Compose** are installed.
 
@@ -78,16 +78,11 @@ Ensure **Docker** and **Docker Compose** are installed.
 - Log (Admin Dashboard)
 - ....
 
-## 📖 Detailed Walkthrough
+## Detailed Walkthrough
 
 Currently, there is no official walkthrough available for **VulnLib**.  
 If you would like to contribute by creating a walkthrough or write-up, feel free to reach out to me.  
 I would be more than happy to add your work here with proper credit. 🚀  
-
-
-## 📬 Contact
-If you want to collaborate, contribute, or ask something, you can reach me via:  
-- **LinkedIn**: [Harrmahar](https://www.linkedin.com/in/harrmahar)  
 
 
 ## App Preview 
@@ -102,6 +97,9 @@ If you want to collaborate, contribute, or ask something, you can reach me via:
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 
+## Contact
+If you want to collaborate, contribute, or ask something, you can reach me via:  
+- **LinkedIn**: [Harrmahar](https://www.linkedin.com/in/harrmahar)  
 
 
 <p align='center'><sub>Made for community - Harrmahar , Sept 2025</sub></p>
