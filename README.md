@@ -45,7 +45,8 @@ There are 4 roles : Public, Member, Librarian, and Admin
 
 ### Live Demo
 **https://vulnlib.helium.sh/** - (Thanks to Cyberacademy.id) 
-Demo Account :
+
+Default Account :
 | Username   | Email                   | Password          | Role      |
 |------------|-------------------------|-------------------|-----------|
 | admin      | admin@vulnlib.edu       | PisangGorengYes!  | admin     |
