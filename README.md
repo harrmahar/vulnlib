@@ -5,9 +5,6 @@ It is intended for **learning and practicing web penetration testing** in a safe
 The system mimics the features of a typical library application while intentionally containing various security flaws for training purposes.  
 Live Demo: https://vulnlib.helium.sh/
 
-⚠️ **Warning!**  
-This project is **for educational use only**.
-
 
 <img width="1133" height="602" alt="image" src="https://github.com/user-attachments/assets/5da5f6c2-35da-40e3-b9d4-efc0c9348deb" />
 
