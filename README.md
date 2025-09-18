@@ -3,9 +3,11 @@
 Vulnlib is a **deliberately vulnerable web application** designed to simulate a real-world **Library Management System (LMS)**.  
 It is intended for **learning and practicing web penetration testing** in a safe and controlled environment.  
 The system mimics the features of a typical library application while intentionally containing various security flaws for training purposes.  
+Live Demo: https://vulnlib.helium.sh/
 
 ⚠️ **Warning!**  
 This project is **for educational use only**. Do not deploy or expose Vulnlib to public/production environments.
+
 
 <img width="1133" height="602" alt="image" src="https://github.com/user-attachments/assets/5da5f6c2-35da-40e3-b9d4-efc0c9348deb" />
 
@@ -39,8 +41,18 @@ There are 4 roles : Public, Member, Librarian, and Admin
 - **Role & Permission Configuration**: Manage access rights for different roles.  
 - **Audit Logs**: Monitor system activity and user actions.  (Under Development)
 - **System Configuration**: Adjust global settings such as fine rules and email templates.  
-- **Database Management**: Reset or re-seed the application database.  
+- **Database Management**: Reset or re-seed the application database.
 
+### Live Demo
+**https://vulnlib.helium.sh/** - (Thanks to Cyberacademy.id) 
+Demo Account :
+| Username   | Email                   | Password          | Role      |
+|------------|-------------------------|-------------------|-----------|
+| admin      | admin@vulnlib.edu       | PisangGorengYes!  | admin     |
+| librarian  | librarian@vulnlib.edu   | PisangGorengYes!! | librarian |
+| sarah_lib  | sarah@vulnlib.edu       | PisangGorengYes!! | librarian |
+| member     | member@vulnlib.edu      | password123       | member    |
+| john_doe   | john.doe@student.edu    | student123        | member    |
 
 ## Vulnerability Categories
 Vulnlib intentionally includes multiple categories of vulnerabilities for pentesting practice, such as:
