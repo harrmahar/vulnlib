@@ -1,6 +1,6 @@
 # 📖 Vulnerable Library Management System (VulnLib)
 
-Vulnlib is a **deliberately vulnerable web application** designed to simulate a real-world **Library Management System (LMS)**.  
+Vulnlib is a **deliberately vulnerable web application** designed to simulate a real-world **Library Management System**.  
 It is intended for **learning and practicing web penetration testing** in a safe and controlled environment.  
 The system mimics the features of a typical library application while intentionally containing various security flaws for training purposes.  
 Live Demo: https://vulnlib.helium.sh/
