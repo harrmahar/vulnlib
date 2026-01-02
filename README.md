@@ -3,7 +3,7 @@
 Vulnlib is a **deliberately vulnerable web application** designed to simulate a real-world **Library Management System**.  
 It is intended for **learning and practicing web penetration testing** in a safe and controlled environment.  
 The system mimics the features of a typical library application while intentionally containing various security flaws for training purposes.  
-Live Demo: https://vulnlib.helium.sh/
+Live Demo: https://vulnlib.vulnapp.id/
 
 
 <img width="1133" height="602" alt="image" src="https://github.com/user-attachments/assets/5da5f6c2-35da-40e3-b9d4-efc0c9348deb" />
@@ -41,7 +41,7 @@ There are 4 roles : Public, Member, Librarian, and Admin
 - **Database Management**: Reset or re-seed the application database.
 
 ### Live Demo
-**https://vulnlib.helium.sh/** - (Thanks to Cyberacademy.id) 
+**https://vulnlib.vulnapp.id/** - (Thanks to Cyberacademy.id) 
 
 Default Account :
 | Username   | Email                   | Password          | Role      |
